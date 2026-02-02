@@ -1,7 +1,7 @@
 spring:
   mail:
-    host: smtp.office365.com
-    port: 587
+    host: mail.ostec-group.ru
+    port: 25
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -9,7 +9,7 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true
+            enable: false
 
   application:
     name: OnlineTablesBackend

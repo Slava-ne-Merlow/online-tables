@@ -40,7 +40,7 @@ class SecurityHandler(
                         allowedHeaders = listOf("*")
                         allowedMethods = listOf("*")
                         allowedOrigins =
-                            listOf("https://team-02-dfafk968.hack.prodcontest.ru", "http://localhost:5173", "http://localhost:3000")
+                            listOf("https://team-02-dfafk968.hack.prodcontest.ru", "http://localhost:5173", "http://localhost:3000", "http://192.168.10.227:3000")
                         allowCredentials = true
                     }
                 }
