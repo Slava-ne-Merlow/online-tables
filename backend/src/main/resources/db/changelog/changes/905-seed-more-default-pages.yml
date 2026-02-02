@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 900-seed-default-page
+      author: Mstislav_the
+      changes:
+        - insert:
+            tableName: pages
+            columns:
+              - column: { name: id,   value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name, value: "Demo Page 2" }
+        - insert:
+            tableName: pages
+            columns:
+              - column: { name: id,   value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name, value: "Demo Page 3" }

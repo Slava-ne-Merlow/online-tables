@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 21-cascade-users-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: cells
+            constraintName: fk_cells_updated_by
+        - addForeignKeyConstraint:
+            baseTableName: cells
+            baseColumnNames: updated_by
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cells_updated_by
+            onDelete: CASCADE
+        - dropForeignKeyConstraint:
+            baseTableName: page_permissions
+            constraintName: fk_page_perm_user
+        - addForeignKeyConstraint:
+            baseTableName: page_permissions
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_page_perm_user
+            onDelete: CASCADE
+        - dropForeignKeyConstraint:
+            baseTableName: column_permissions
+            constraintName: fk_col_perm_user
+        - addForeignKeyConstraint:
+            baseTableName: column_permissions
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_col_perm_user
+            onDelete: CASCADE

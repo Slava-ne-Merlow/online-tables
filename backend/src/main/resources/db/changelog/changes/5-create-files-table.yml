@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7-create-files
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: files
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: filename
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_path
+                  type: VARCHAR(1024)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: files
+            columnNames: storage_path
+            constraintName: uq_files_storage_path
+        - createIndex:
+            tableName: files
+            indexName: idx_files_storage_path
+            unique: true
+            columns:
+              - column:
+                  name: storage_path

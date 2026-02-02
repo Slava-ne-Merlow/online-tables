@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5.1-columns-type-check
+      author: Mstislav_the
+      preConditions:
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            endDelimiter: ;
+            sql: |
+              ALTER TABLE columns
+              ADD CONSTRAINT chk_columns_type_enum
+              CHECK (type IN ('TEXT','NUMBER','DATE','SELECTOR','FILE'));

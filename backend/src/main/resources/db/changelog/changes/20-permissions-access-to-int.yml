@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20-permissions-access-to-int
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE page_permissions
+              ALTER COLUMN access TYPE INT
+              USING CASE access
+                WHEN 'NO' THEN 0
+                WHEN 'READ' THEN 1
+                WHEN 'WRITE' THEN 2
+                WHEN 'MANAGE' THEN 3
+                ELSE 0
+              END;
+              ALTER TABLE column_permissions
+              ALTER COLUMN access TYPE INT
+              USING CASE access
+                WHEN 'NO' THEN 0
+                WHEN 'READ' THEN 1
+                WHEN 'WRITE' THEN 2
+                ELSE 0
+              END;

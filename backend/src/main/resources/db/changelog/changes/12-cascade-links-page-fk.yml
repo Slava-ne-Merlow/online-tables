@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 12-cascade-links-page-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: right_to_left_links
+            constraintName: fk_links_page
+        - addForeignKeyConstraint:
+            baseTableName: right_to_left_links
+            baseColumnNames: page_id
+            referencedTableName: pages
+            referencedColumnNames: id
+            constraintName: fk_links_page
+            onDelete: CASCADE

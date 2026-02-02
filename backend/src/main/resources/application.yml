@@ -1,0 +1,81 @@
+spring:
+  mail:
+    host: smtp.office365.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  application:
+    name: OnlineTablesBackend
+  docker:
+    compose:
+      file: dev-compose.yml
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    url: ${POSTGRES_JDBC_URL}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 16MB
+
+jwt:
+  secret: ${JWT_SECRET:changeme-dev-secret-minimum-32-characters-required-for-hmac-sha256-algorithm}
+  access-token-expiration: 604800000
+
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+
+springdoc:
+  paths-to-match: /api/**
+  api-docs:
+    path: /docs/v3
+  swagger-ui:
+    path: /docs/
+
+server:
+  port: ${SERVER_PORT:8080}
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+
+logging:
+  level:
+    root: INFO
+    de.vyacheslav.kushchenko.tables: DEBUG
+
+app:
+  mail:
+    provider: ${MAIL_PROVIDER:python}
+    bccAdmin: ${MAIL_BCC_ADMIN:}
+    from: ${MAIL_FROM:"Online Tables <noreply@company.com>"}
+
+    python:
+      command: ${MAIL_PYTHON_COMMAND:python3}
+      script: ${MAIL_PYTHON_SCRIPT:./mail/send_mail.py}
+      timeoutSeconds: ${MAIL_PYTHON_TIMEOUT_SECONDS:20}
+
+    outbox:
+      pollMs: ${MAIL_OUTBOX_POLL_MS:2000}

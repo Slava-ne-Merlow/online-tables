@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 14-cascade-page-permissions-page-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: page_permissions
+            constraintName: fk_page_perm_page
+        - addForeignKeyConstraint:
+            baseTableName: page_permissions
+            baseColumnNames: page_id
+            referencedTableName: pages
+            referencedColumnNames: id
+            constraintName: fk_page_perm_page
+            onDelete: CASCADE

@@ -1,0 +1,967 @@
+.wrapper {
+    overflow: auto;
+    height: 100%;
+}
+
+/* merge bar moved to header */
+
+
+.mergeSelectedRow td {
+    background: var(--color-accent-light);
+}
+
+.mergeHint {
+    color: var(--color-muted);
+    margin-bottom: 8px;
+}
+
+.mergeConflicts {
+    display: grid;
+    gap: 10px;
+    max-height: 300px;
+    overflow: auto;
+    margin-bottom: 10px;
+}
+
+.mergeMiniGrid {
+    max-height: 360px;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg);
+    table-layout: auto;
+}
+
+.mergeMiniGrid table {
+    table-layout: auto;
+    width: auto;
+}
+
+.mergeMiniGrid table th,
+.mergeMiniGrid table td {
+    max-width: 220px;
+    width: auto;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.mergeMiniGrid table td {
+    height: 68px;
+    max-height: 68px;
+    vertical-align: top;
+    overflow: hidden;
+}
+
+.mergeMiniGrid table tbody tr {
+    height: 68px;
+    max-height: 68px;
+}
+
+.mergeThConflict {
+    background: var(--color-danger-bg-hover2) !important;
+    /*color: var(--color-danger) !important;*/
+}
+
+.mergeTd {
+    padding: 0;
+}
+
+.mergeCellReadonly {
+    padding: 4px 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.mergeCellText {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.mergeCellTextNoWrap {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+
+.mergeConflictRow {
+    display: grid;
+    gap: 6px;
+}
+
+.mergeConflictTitle {
+    font-weight: 600;
+}
+
+.mergeConflictOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mergeOptionBtn {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.mergeOptionBtnActive {
+    border-color: var(--color-accent);
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg);
+    font: 400 14px 'Roboto', sans-serif;
+}
+
+
+.table thead th {
+    position: sticky;
+    top: -1px;
+    z-index: 1; /* поверх содержимого */
+    background: var(--color-accent-light);
+    color: var(--color-text);
+    font-weight: 600;
+    white-space: nowrap;
+
+
+    text-align: center;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    max-width: 250px;
+}
+
+.thInput {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.thInput:focus {
+    outline: none
+}
+
+
+.table td {
+    border: 1px solid var(--color-border);
+    vertical-align: middle;
+    text-align: center;
+    max-width: 250px;
+    padding: 0 10px;
+    color: var(--color-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.td {
+    min-height: 34px;
+    height: 34px;
+    padding: 4px 10px;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+
+
+.td:focus {
+    outline: none;
+}
+
+.tdEditable {
+    background: var(--color-bg);
+}
+
+.tdReadonly {
+    background: var(--color-bg);
+}
+
+.placeholder {
+    color: var(--color-muted);
+}
+
+.btn {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: 6px;
+    padding: 6px 8px 2px;
+    align-items: center;
+    cursor: pointer;
+}
+.btnBorder{
+    border: 1px solid var(--color-border);
+}
+
+.btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: var(--color-accent-light);
+    .iconDownload {
+        transition: background 0.2s ease;
+        background-color: var(--color-accent);
+    }
+    transition: background 0.2s ease;
+    .iconUpload{
+        background-color: var(--color-accent);
+    }
+}
+
+.btnDanger {
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.btnDanger:hover {
+    background: var(--color-danger-bg-hover);
+}
+
+.link {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.fileActions {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+
+.popover {
+    position: fixed;
+    z-index: 1400;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+    padding: 6px;
+    overflow: hidden;
+}
+
+.popoverTop {
+    transform: translateY(-100%);
+}
+
+.popoverList {
+    display: grid;
+    gap: 4px;
+    overflow: auto;
+}
+
+.popoverItem {
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+
+
+.selectorItem {
+    text-align: left;
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border: none;
+    background-color: var(--color-surface);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text);
+}
+
+.selectorItem:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.popoverItem:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+
+.popoverItemEmpty {
+    min-height: 28px;
+    padding: 0;
+}
+
+.iconUpload {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/upload.svg') no-repeat center;
+    mask: url('../assets/icons/upload.svg') no-repeat center / contain;
+
+    background-color: var(--color-text);
+}
+
+.iconDelete {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/trash.svg') no-repeat center;
+    mask: url('../assets/icons/trash.svg') no-repeat center / contain;
+
+    background-color: var(--color-danger);
+}
+
+.iconPlus {
+    width: 11px;
+    height: 11px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/plus.svg') no-repeat center;
+    mask: url('../assets/icons/plus.svg') no-repeat center / contain;
+
+    background-color: var(--color-text);
+}
+
+.iconDownload {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/download.svg') no-repeat center;
+    mask: url('../assets/icons/download.svg') no-repeat center / contain;
+    background-color: var(--color-text);
+}
+
+.iconMore {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/more.svg') no-repeat center;
+    mask: url('../assets/icons/more.svg') no-repeat center / contain;
+    background-color: var(--color-text);
+}
+/* ---------- context menu ---------- */
+.ctxMenu {
+    position: fixed;
+    z-index: 1200;
+    min-width: 260px;
+    max-width: 360px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+
+    overflow: auto;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+
+.ctxItem,
+.ctxItemDanger {
+    padding: 10px 36px 10px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text);
+}
+.ctxItemDiv{
+    padding: 10px 36px 10px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+}
+.ctxItem:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    .iconPlus{
+        background-color: var(--color-accent);
+    }
+}
+
+.ctxItemDanger {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+.ctxItemDanger:hover {
+    background: var(--color-danger-bg-hover);
+}
+
+.ctxHint {
+    padding: 10px 12px;
+    color: var(--color-muted);
+    font-size: 13px;
+}
+
+/* подсветка заголовка с активным фильтром */
+.thFiltered {
+    background: var(--color-accent-light-selected) !important;
+}
+
+.thEditing {
+    background: transparent !important;
+}
+/* уже были — оставляем */
+.filterPanel {
+    position: fixed;
+    z-index: 1300;
+    min-width: 260px;
+    max-width: 340px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    padding: 8px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* чтобы подпопап позиционировался относительно панели */
+    position: fixed;
+}
+
+.filterTitle {
+    font-weight: 600;
+    margin: 4px 4px 2px;
+}
+
+.filterColumnActions {
+    display: grid;
+    gap: 4px;
+}
+
+.filterDivider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 4px 0;
+}
+
+.filterSortBlock {
+    display: grid;
+    gap: 4px;
+}
+
+.filterSortBtn {
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filterSortBtn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+/* строка с кнопкой "Добавить фильтр >" */
+.filterAddRow {
+    margin-top: 4px;
+}
+
+.filterAddBtn {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filterAddBtn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+/* подпопап фильтра справа от основного меню */
+.filterSubPanel {
+    position: absolute;
+    top: 0;
+
+    min-width: 260px;
+    max-width: 320px;
+    max-height: 360px;
+    overflow: auto;
+
+    background: var(--color-surface);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    padding: 8px 8px 10px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* справа от панели (по умолчанию) */
+.filterSubPanelRight {
+    left: 100%;
+    margin-left: 8px;
+}
+
+/* слева от панели (когда не хватает места справа) */
+.filterSubPanelLeft {
+    right: 100%;
+    margin-right: 8px;
+}
+
+.addColumnTitle {
+    font-weight: 600;
+    margin: 4px 4px 2px;
+}
+
+.addColumnField {
+    display: grid;
+    gap: 4px;
+}
+
+.addColumnLabel {
+    font-size: 12px;
+    color: var(--color-muted);
+}
+
+.addColumnInput,
+.addColumnOptionInput {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    padding: 6px 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.addColumnOptions {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+
+}
+
+.addColumnOptionsList {
+    display: grid;
+    gap: 4px;
+}
+
+.selectorOptions {
+    display: grid;
+    gap: 6px;
+}
+
+.selectorOptionRow {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+}
+
+.selectorOptionBtn {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: 8px;
+    padding: 9px 10px;
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: left;
+
+    gap: 10px;
+
+}
+
+.selectorOptionBtn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-color: var(--color-accent-light-selected);
+}
+
+.selectorOptionBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.selectorOptionDanger {
+    border: 1px solid var(--color-danger);
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border-radius: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.selectorOptionDanger:hover {
+    background: var(--color-danger-bg-hover);
+}
+
+.selectorOrderBtn {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: 8px;
+    padding: 7px 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.selectorOrderBtn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-color: var(--color-accent-light-selected);
+}
+
+.selectorOrderBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.selectorOrderGroup {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.addColumnOptionRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    align-items: center;
+}
+
+.addColumnOptionRemove {
+    border: none;
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.addColumnOptionRemove:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.addColumnOptionAdd {
+    border: none;
+    background: var(--color-surface-muted);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.addColumnOptionAdd:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.addColumnError {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #b00020;
+}
+
+.addColumnActions {
+    width: 100%;
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.addColumnSubmit {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 10px 36px 10px 12px;
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.addColumnSubmit {
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.addColumnSubmit:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.selectorField {
+    width: 100%;
+    /*min-height: 34px;*/
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    outline: none;
+    justify-content: left;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    padding: 9px 36px 9px 12px;
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: left;
+
+    gap: 10px;
+}
+.selectorField:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    .iconPlus{
+        background-color: var(--color-accent);
+    }
+    span {
+        color: var(--color-accent);
+    }
+}
+.selectorFieldValue {
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+
+
+
+.selectorFieldPlaceholder {
+    color: var(--color-muted);
+}
+
+/* остальной блок фильтров остаётся тем же, что и раньше: */
+.filterSearch {
+    margin-top: 2px;
+}
+
+.filterSearchInput {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    padding: 6px 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.filterValuesBox {
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow: hidden;
+}
+
+.filterAllRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 6px;
+    border-radius: 8px;
+}
+
+.filterAllRow label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filterValuesList {
+    overflow: auto;
+    display: grid;
+    gap: 2px;
+}
+
+.filterValueRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.filterValueRow:hover {
+    background: var(--color-accent-light);
+}
+
+.filterValueLeft {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filterCount {
+    font-size: 12px;
+    color: var(--color-muted);
+}
+
+.filterFooter {
+    margin-top: 6px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.filterBtnCancel {
+    border: none;
+    background: var(--color-surface-muted);
+}
+
+.filterBtnApply {
+    border: none;
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.filterBtnApply:hover {
+    background: var(--color-accent-light-selected);
+}
+
+.filterPanel {
+    position: fixed;
+    z-index: 1300;
+    min-width: 260px;
+    max-width: 340px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    padding: 8px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filterAddRow {
+    margin-top: 4px;
+}
+
+.filterAddBtn {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filterAddBtn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+/* подпопап фильтра */
+.filterSubPanel {
+    position: absolute;
+    top: 0;
+
+    min-width: 260px;
+    max-width: 320px;
+    max-height: 360px;
+    overflow: auto;
+
+    background: var(--color-surface);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    padding: 8px 8px 10px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filterSortBlock {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+/* остальное, чтобы точно был скролл по значениям */
+.filterValuesBox {
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 230px;
+    overflow: hidden;
+}
+
+.filterValuesList {
+    overflow: auto;
+    display: grid;
+    gap: 2px;
+}

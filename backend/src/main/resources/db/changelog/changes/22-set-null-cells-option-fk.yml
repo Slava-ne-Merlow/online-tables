@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 22-set-null-cells-option-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: cells
+            constraintName: fk_cells_option
+        - addForeignKeyConstraint:
+            baseTableName: cells
+            baseColumnNames: option_id
+            referencedTableName: selector_options
+            referencedColumnNames: id
+            constraintName: fk_cells_option
+            onDelete: SET NULL

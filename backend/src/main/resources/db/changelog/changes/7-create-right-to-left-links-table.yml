@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9-create-right-to-left-links
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: right_to_left_links
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: pages
+                    referencedColumnNames: id
+                    foreignKeyName: fk_links_page
+
+              - column:
+                  name: left_row_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: right_row_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: right_to_left_links
+            columnNames: page_id, right_row_id
+            constraintName: uq_links_page_right
+
+        - createIndex:
+            tableName: right_to_left_links
+            indexName: idx_links_page_left
+            columns:
+              - column: { name: page_id }
+              - column: { name: left_row_id }

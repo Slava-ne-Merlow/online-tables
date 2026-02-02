@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 13-cascade-columns-side-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: columns
+            constraintName: fk_columns_side
+        - addForeignKeyConstraint:
+            baseTableName: columns
+            baseColumnNames: side_id
+            referencedTableName: page_sides
+            referencedColumnNames: id
+            constraintName: fk_columns_side
+            onDelete: CASCADE

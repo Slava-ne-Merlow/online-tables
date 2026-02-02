@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 19-drop-permissions-id-columns
+      author: codex
+      changes:
+        - dropPrimaryKey:
+            tableName: page_permissions
+        - dropColumn:
+            tableName: page_permissions
+            columnName: id
+        - addPrimaryKey:
+            tableName: page_permissions
+            columnNames: page_id, user_id
+            constraintName: pk_page_permissions
+        - dropPrimaryKey:
+            tableName: column_permissions
+        - dropColumn:
+            tableName: column_permissions
+            columnName: id
+        - addPrimaryKey:
+            tableName: column_permissions
+            columnNames: column_id, user_id
+            constraintName: pk_column_permissions

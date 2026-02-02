@@ -1,0 +1,80 @@
+:root {
+    --header-h: 45px;
+    --footer-h: 35px;
+    --color-accent: #3B5BDB;
+    --color-accent-hover: #364FC7;
+    --color-accent-light: #D7E1FF;
+    --color-accent-light-selected: #C4D3FF;
+
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f3f4f8;
+    --color-text: #111111;
+    --color-muted: #555555;
+    --color-border: #dddddd;
+    --color-danger: #b00020;
+    --color-danger-bg: #fff5f5;
+    --color-danger-bg-hover: #ffecec;
+    --color-danger-bg-hover2: #ffc3c3;
+    --header-bg: linear-gradient(90deg, #eef3ff 0%, #e6edff 45%, #f2f6ff 100%);
+    --header-shadow: 0 4px 12px rgba(36, 62, 161, 0.08);
+    --header-avatar-bg: #d6def8;
+    --header-avatar-border: rgba(59, 91, 219, 0.4);
+    --icon-filter-text: brightness(0) saturate(100%) invert(9%) sepia(5%) saturate(160%) hue-rotate(176deg)
+        brightness(96%) contrast(92%);
+    --icon-filter-accent: brightness(0) saturate(100%) invert(29%) sepia(48%) saturate(2851%) hue-rotate(214deg)
+        brightness(90%) contrast(94%);
+    --icon-filter-muted: brightness(0) saturate(100%) invert(60%) sepia(11%) saturate(304%) hue-rotate(201deg)
+        brightness(92%) contrast(86%);
+}
+
+[data-theme="DARK"] {
+    --color-accent: #7aa2ff;
+    --color-accent-hover: #6b92f2;
+    --color-accent-light: #243254;
+    --color-accent-light-selected: #2f3e66;
+
+    --color-bg: #121318;
+    --color-surface: #1a1f2b;
+    --color-surface-muted: #22283a;
+    --color-text: #eef1ff;
+    --color-muted: #a5abc5;
+    --color-border: #2a3146;
+    --color-danger: #ff7a8c;
+    --color-danger-bg: #3a1b22;
+    --color-danger-bg-hover: #4a222a;
+    --header-bg: linear-gradient(90deg, #161a26 0%, #1c2233 45%, #1a2130 100%);
+    --header-shadow: 0 6px 16px rgba(4, 8, 20, 0.4);
+    --header-avatar-bg: #2a3350;
+    --header-avatar-border: rgba(122, 162, 255, 0.4);
+    --icon-filter-text: brightness(0) saturate(100%) invert(93%) sepia(6%) saturate(231%) hue-rotate(190deg)
+        brightness(103%) contrast(101%);
+    --icon-filter-accent: brightness(0) saturate(100%) invert(70%) sepia(23%) saturate(2363%) hue-rotate(197deg)
+        brightness(101%) contrast(101%);
+    --icon-filter-muted: brightness(0) saturate(100%) invert(56%) sepia(9%) saturate(475%) hue-rotate(198deg)
+        brightness(92%) contrast(90%);
+}
+
+.root {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: var(--header-h) 1fr var(--footer-h);
+    overflow-y: hidden;
+}
+
+.contentArea {
+    overflow: auto; /* важный скролл центральной области */
+    background: var(--color-bg);
+}
+
+.sharedRoot {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr;
+    background: var(--color-bg);
+}
+
+.sharedContent {
+    overflow: auto;
+    background: var(--color-bg);
+}

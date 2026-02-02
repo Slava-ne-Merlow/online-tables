@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2-create-attachments-table
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: attachments
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: extension
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: content_type
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false

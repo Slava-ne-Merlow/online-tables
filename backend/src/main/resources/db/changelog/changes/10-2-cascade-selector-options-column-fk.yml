@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10.2-cascade-selector-options-column-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: selector_options
+            constraintName: fk_select_options_column
+        - addForeignKeyConstraint:
+            baseTableName: selector_options
+            baseColumnNames: column_id
+            referencedTableName: columns
+            referencedColumnNames: id
+            constraintName: fk_select_options_column
+            onDelete: CASCADE

@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 24-add-is-archived-to-pages
+      author: codex
+      changes:
+        - addColumn:
+            tableName: pages
+            columns:
+              - column:
+                  name: is_archived
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

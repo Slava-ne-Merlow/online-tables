@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-cascade-cells-column-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: cells
+            constraintName: fk_cells_column
+        - addForeignKeyConstraint:
+            baseTableName: cells
+            baseColumnNames: column_id
+            referencedTableName: columns
+            referencedColumnNames: id
+            constraintName: fk_cells_column
+            onDelete: CASCADE

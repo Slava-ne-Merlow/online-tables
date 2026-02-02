@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.1-page-sides-side-check
+      author: Mstislav_the
+      preConditions:
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            endDelimiter: ;
+            sql: |
+              ALTER TABLE page_sides
+              ADD CONSTRAINT chk_page_sides_side_enum
+              CHECK (side IN ('LEFT','RIGHT'));

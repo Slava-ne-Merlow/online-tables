@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 903-seed-columns-right
+      author: Mstislav_the
+      changes:
+        # comment (TEXT)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "55555555-5555-5555-5555-555555555551" }
+              - column: { name: side_id,  value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name,     value: "Comment" }
+              - column: { name: key,      value: "comment" }
+              - column: { name: type,     value: "TEXT" }
+              - column: { name: position, valueNumeric: 1 }
+
+        # estimate (NUMBER)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "55555555-5555-5555-5555-555555555552" }
+              - column: { name: side_id,  value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name,     value: "Estimate" }
+              - column: { name: key,      value: "estimate" }
+              - column: { name: type,     value: "NUMBER" }
+              - column: { name: position, valueNumeric: 2 }
+
+        # status (SELECT)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "55555555-5555-5555-5555-555555555553" }
+              - column: { name: side_id,  value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name,     value: "Status" }
+              - column: { name: key,      value: "status" }
+              - column: { name: type,     value: "SELECTOR" }
+              - column: { name: position, valueNumeric: 3 }
+
+        # completed_at (DATE)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "55555555-5555-5555-5555-555555555554" }
+              - column: { name: side_id,  value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name,     value: "Completed at" }
+              - column: { name: key,      value: "completed_at" }
+              - column: { name: type,     value: "DATE" }
+              - column: { name: position, valueNumeric: 4 }
+
+        # attachment (FILE)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "55555555-5555-5555-5555-555555555555" }
+              - column: { name: side_id,  value: "33333333-3333-3333-3333-333333333333" }
+              - column: { name: name,     value: "Attachment" }
+              - column: { name: key,      value: "attachment" }
+              - column: { name: type,     value: "FILE" }
+              - column: { name: position, valueNumeric: 5 }

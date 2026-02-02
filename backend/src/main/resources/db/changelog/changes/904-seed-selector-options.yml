@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 904-seed-selector-options
+      author: Mstislav_the
+      changes:
+        # LEFT.priority (column_id = 444...443)
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666601" }
+              - column: { name: column_id,  value: "44444444-4444-4444-4444-444444444443" }
+              - column: { name: label,      value: "Low" }
+              - column: { name: value,      value: "low" }
+              - column: { name: sort_order, valueNumeric: 1 }
+
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666602" }
+              - column: { name: column_id,  value: "44444444-4444-4444-4444-444444444443" }
+              - column: { name: label,      value: "Medium" }
+              - column: { name: value,      value: "medium" }
+              - column: { name: sort_order, valueNumeric: 2 }
+
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666603" }
+              - column: { name: column_id,  value: "44444444-4444-4444-4444-444444444443" }
+              - column: { name: label,      value: "High" }
+              - column: { name: value,      value: "high" }
+              - column: { name: sort_order, valueNumeric: 3 }
+
+        # RIGHT.status (column_id = 555...553)
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666611" }
+              - column: { name: column_id,  value: "55555555-5555-5555-5555-555555555553" }
+              - column: { name: label,      value: "New" }
+              - column: { name: value,      value: "new" }
+              - column: { name: sort_order, valueNumeric: 1 }
+
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666612" }
+              - column: { name: column_id,  value: "55555555-5555-5555-5555-555555555553" }
+              - column: { name: label,      value: "In Progress" }
+              - column: { name: value,      value: "in_progress" }
+              - column: { name: sort_order, valueNumeric: 2 }
+
+        - insert:
+            tableName: selector_options
+            columns:
+              - column: { name: id,         value: "66666666-6666-6666-6666-666666666613" }
+              - column: { name: column_id,  value: "55555555-5555-5555-5555-555555555553" }
+              - column: { name: label,      value: "Done" }
+              - column: { name: value,      value: "done" }
+              - column: { name: sort_order, valueNumeric: 3 }

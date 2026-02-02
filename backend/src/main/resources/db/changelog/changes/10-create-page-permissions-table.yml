@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-create-page-permissions
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: page_permissions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: pages
+                    referencedColumnNames: id
+                    foreignKeyName: fk_page_perm_page
+
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: users
+                    referencedColumnNames: id
+                    foreignKeyName: fk_page_perm_user
+
+              - column:
+                  name: can_read
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+              - column:
+                  name: can_write
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: can_admin
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+        - addUniqueConstraint:
+            tableName: page_permissions
+            columnNames: page_id, user_id
+            constraintName: uq_page_permissions_page_user
+
+        - createIndex:
+            tableName: page_permissions
+            indexName: idx_page_permissions_page_id
+            columns:
+              - column: { name: page_id }
+
+        - createIndex:
+            tableName: page_permissions
+            indexName: idx_page_permissions_user_id
+            columns:
+              - column: { name: user_id }

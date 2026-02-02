@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8-create-cells
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: cells
+            columns:
+              - column:
+                  name: side_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: page_sides
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cells_side
+
+              - column:
+                  name: row_id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: column_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: columns
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cells_column
+
+              - column:
+                  name: value_text
+                  type: TEXT
+              - column:
+                  name: value_number
+                  type: DECIMAL(38,10)
+              - column:
+                  name: value_date
+                  type: DATE
+              - column:
+                  name: option_id
+                  type: UUID
+                  constraints:
+                    referencedTableName: selector_options
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cells_option
+              - column:
+                  name: file_id
+                  type: UUID
+                  constraints:
+                    referencedTableName: files
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cells_file
+
+              - column:
+                  name: updated_by
+                  type: UUID
+                  constraints:
+                    referencedTableName: users
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cells_updated_by
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addUniqueConstraint:
+            tableName: cells
+            columnNames: side_id, row_id, column_id
+            constraintName: uq_cells_side_row_column
+
+        - createIndex:
+            tableName: cells
+            indexName: idx_cells_side_row
+            columns:
+              - column: { name: side_id }
+              - column: { name: row_id }
+
+        - createIndex:
+            tableName: cells
+            indexName: idx_cells_column
+            columns:
+              - column: { name: column_id }
+
+        - createIndex:
+            tableName: cells
+            indexName: idx_cells_option
+            columns:
+              - column: { name: option_id }
+
+        - createIndex:
+            tableName: cells
+            indexName: idx_cells_file
+            columns:
+              - column: { name: file_id }
+
+        - createIndex:
+            tableName: cells
+            indexName: idx_cells_updated_at
+            columns:
+              - column: { name: updated_at }

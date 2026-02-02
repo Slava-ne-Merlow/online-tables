@@ -1,0 +1,1837 @@
+openapi: 3.0.3
+info:
+  title: Two-Sided Pages API
+  version: 1.0.4
+  description: 'API для страниц с левой/правой частью, колонками и ячейками (без records).
+
+    Обновление — по одной ячейке; получение всей страницы — одним гридом.
+
+    '
+servers:
+  - url: https://api.example.com
+security:
+  - bearerAuth: [ ]
+tags:
+  - name: Auth
+  - name: Ping
+    description: Проверка доступности сервиса (healthcheck).
+  - name: Users
+  - name: Pages
+  - name: Tables
+    description: 'Операции с табличным представлением страницы: легенда, строки (left/right).'
+  - name: Columns
+  - name: Cells
+  - name: Links
+  - name: Files
+  - name: Access
+  - name: Selectors
+paths:
+  /api/ping:
+    get:
+      tags:
+        - Ping
+      summary: Проверить доступность сервиса
+      operationId: ping
+      responses:
+        '200':
+          description: Пинг успешен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+
+  /api/access/me:
+    get:
+      tags:
+        - Access
+      summary: Получить свой уровень доступа к страницам и колонкам на них
+      operationId: getAccessMe
+      responses:
+        '200':
+          description: Узнать доступы авторизованного пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccess'
+  /api/access/users:
+    get:
+      tags:
+        - Access
+      summary: Получить Доступы по всем пользователям
+      operationId: getUserAccess
+      responses:
+        '200':
+          description: Пользователь успешно вошел в аккаунт
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserAccess'
+    patch:
+      tags:
+        - Access
+      summary: Обновить доступы по пользователя на страницу
+      operationId: updateUserAccess
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserAccessRequest'
+      responses:
+        '200':
+          description: Пользователь успешно вошел в аккаунт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccess'
+
+
+  /api/auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Войти в аккаунт пользователя
+      operationId: signIn
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+      responses:
+        '200':
+          description: Пользователь успешно вошел в аккаунт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Зарегистрировать нового пользователя
+      operationId: register
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '409':
+          description: Пользователь с таким логином уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /api/auth/change-password:
+    post:
+      tags:
+        - Auth
+      summary: Сменить пароль
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '204':
+          description: Пароль успешно изменен
+        '401':
+          description: Неверный старый пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /api/users/register:
+    post:
+      tags:
+        - Auth
+      summary: Добавить нового пользователя сразу с доступами
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '200':
+          description: Успешно получен свой пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+
+
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Получить своего пользователя (включая роль)
+      description: Возвращает данные пользователя и связанные атрибуты аккаунта.
+      operationId: getMe
+      responses:
+        '200':
+          description: Успешно получен свой пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+    patch:
+      tags:
+        - Users
+      summary: Изменить своего пользователя
+      description: Обновляет только профиль пользователя (например, имя).
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Успешно изменен свой пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+  /api/users:
+    post:
+      tags:
+        - Users
+      summary: Создать пользователя и сразу настроить доступы к колонкам/страницам
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateWithPermissions'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/pages:
+    get:
+      tags:
+        - Pages
+      summary: Список страниц, доступных текущему пользователю
+      operationId: getPages
+      responses:
+        '200':
+          description: Array of 5
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Page'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Pages
+      summary: Добавить страницу
+      operationId: addPage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPageRequest'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+
+  /api/pages/{pageId}:
+    get:
+      tags:
+        - Pages
+      summary: Получить страницу
+      operationId: getPage
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Pages
+      summary: Переименовать страницу
+      operationId: renamePage
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenamePageRequest'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+    delete:
+      tags:
+        - Pages
+      summary: Удалить страницу
+      operationId: deletePage
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+  /api/pages/{pageId}/toggle-archive:
+    patch:
+      tags:
+        - Pages
+      summary: Переключить статус архивирования страницы
+      operationId: togglePageArchive
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/pages/{pageId}/legend:
+    get:
+      tags:
+        - Tables
+      summary: Легенда/оглавление для левой и правой части с учётом прав и порядка
+      operationId: getLegend
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Page legend
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageLegend'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/grid:
+    get:
+      tags:
+        - Pages
+      summary: Получить всю страницу (легенда + данные слева/справа + связи)
+      operationId: getGrid
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Full grid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageGrid'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/share:
+    post:
+      tags:
+        - Pages
+      summary: Получить ссылку для просмотра страницы
+      operationId: createPageShare
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Ссылка для просмотра
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/export:
+    get:
+      tags:
+        - Pages
+      summary: Экспортировать страницу в Excel
+      operationId: exportPage
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Excel файл страницы
+          headers:
+            Content-Disposition:
+              description: attachment; filename="page.xlsx"
+              schema:
+                type: string
+            Content-Length:
+              description: Размер файла в байтах
+              schema:
+                type: integer
+                format: int64
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/share/{token}/grid:
+    get:
+      tags:
+        - Pages
+      summary: Получить страницу по публичной ссылке
+      operationId: getSharedGrid
+      security: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ShareToken'
+      responses:
+        '200':
+          description: Full grid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageGrid'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/rows:
+    post:
+      tags:
+        - Tables
+      summary: Добавить пустую строку (левая + одна правая)
+      operationId: addRow
+      description: Создаёт пустую левую строку и одну пустую правую, линкует их. Значений
+        ячеек нет — только идентификаторы строк.
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '201':
+          description: Created (пустая строка в формате грида)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeftRow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/rows/{leftRowId}/right:
+    post:
+      tags:
+        - Tables
+      summary: Добавить правую часть к существующей левой
+      operationId: addRightRow
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: leftRowId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Created right row and link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RightRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/right/{rightRowId}:
+    delete:
+      tags:
+        - Tables
+      summary: Удалить правую часть; если она последняя — удалить и левую
+      operationId: deleteRightRow
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: rightRowId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - rightDeleted
+                  - leftDeleted
+                properties:
+                  rightDeleted:
+                    type: boolean
+                  leftDeleted:
+                    type: boolean
+                    description: true, если удалили и левую
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/left/{leftRowId}:
+    delete:
+      tags:
+        - Tables
+      summary: Удалить левую часть и все связанные правые
+      operationId: deleteLeftRow
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: leftRowId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deleted left and N rights
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - leftDeleted
+                  - rightsDeletedCount
+                properties:
+                  leftDeleted:
+                    type: boolean
+                  rightsDeletedCount:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/columns:
+    get:
+      tags:
+        - Columns
+      summary: Список колонок по стороне
+      operationId: getColumns
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: query
+          name: side
+          required: true
+          schema:
+            $ref: '#/components/schemas/Side'
+      responses:
+        '200':
+          description: Columns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Column'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Columns
+      summary: Добавить колонку
+      operationId: addColumn
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: query
+          name: side
+          required: true
+          schema:
+            $ref: '#/components/schemas/Side'
+        - in: query
+          name: columnType
+          required: true
+          schema:
+            $ref: '#/components/schemas/ColumnType'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColumnCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/pages/{pageId}/columns/order:
+    patch:
+      tags:
+        - Columns
+      summary: Массовая перестановка порядка колонок на стороне
+      operationId: updateColumnsOrder
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: query
+          name: side
+          required: true
+          schema:
+            $ref: '#/components/schemas/Side'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - columnIds
+              properties:
+                columnIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Колонки в новом порядке (все видимые для этой стороны)
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Column'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/pages/{pageId}/columns/{columnId}:
+    patch:
+      tags:
+        - Columns
+      summary: Обновить колонку (имя)
+      operationId: updateColumn
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: columnId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColumnUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Columns
+      summary: Удалить колонку
+      operationId: deleteColumn
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: columnId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/pages/{pageId}/merge-left-rows:
+    post:
+      tags:
+        - Tables
+      summary: Объединить несколько левых строк в одну
+      operationId: mergeLeftRows
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeLeftRowsRequest'
+      responses:
+        '200':
+          description: Merged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeftRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/pages/{pageId}/rows/{rowId}/cells/{side}/{columnKey}:
+    patch:
+      tags:
+        - Cells
+      summary: Обновить одну ячейку (только существующую)
+      operationId: updateCell
+      description: 'Идемпотентное обновление значения ячейки, адресуемой (pageId,
+        side, rowId, columnKey).'
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - $ref: '#/components/parameters/RowId'
+        - $ref: '#/components/parameters/SidePath'
+        - $ref: '#/components/parameters/ColumnKeyPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCellRequest"
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  nullable: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /pages/{pageId}/links:
+    get:
+      tags:
+        - Links
+      summary: Все связи right->left на странице
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Link'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /files:
+    post:
+      tags:
+        - Files
+      summary: Загрузить файл
+      operationId: saveFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoredFile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /files/{fileId}:
+    get:
+      tags:
+        - Files
+      summary: Скачать файл
+      operationId: downloadFile
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          description: Файл отдан
+          headers:
+            Content-Disposition:
+              description: attachment; filename="<оригинальное имя>"
+              schema:
+                type: string
+            Content-Length:
+              description: Размер файла в байтах
+              schema:
+                type: integer
+                format: int64
+            ETag:
+              description: Хеш содержимого
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/pages/{pageId}/selectors/{columnId}/options:
+    get:
+      tags:
+        - Selectors
+      summary: Опции селектора для колонки
+      operationId: getSelectorOptions
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: columnId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Options
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SelectorOption'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Selectors
+      summary: Добавить опцию селектора
+      operationId: addSelectorOption
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: columnId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectOptionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectorOption'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/selectors/{columnId}/options/order:
+    patch:
+      tags:
+        - Selectors
+      summary: Обновить порядок опций селектора
+      operationId: updateSelectorOptionsOrder
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: columnId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ optionIds ]
+              properties:
+                optionIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SelectorOption'
+  /api/pages/{pageId}/selectors/options/{optionId}:
+    patch:
+      tags:
+        - Selectors
+      summary: Обновить опцию селектора
+      operationId: updateOption
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: optionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectorOption'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Selectors
+      summary: Удалить опцию селектора
+      operationId: deleteOption
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+        - in: path
+          name: optionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectorOption'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: JWT токен для аутентификации.
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+    '404':
+      description: Объект(ы) не найден(ы)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StatusResponse'
+    '413':
+      description: Слишком большой запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StatusResponse'
+    '415':
+      description: Неподдерживаемый тип данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StatusResponse'
+  schemas:
+    RenamePageRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    AddPageRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    Side:
+      type: string
+      enum:
+        - LEFT
+        - RIGHT
+    ColumnAccess:
+      type: string
+      enum:
+        - "NO"
+        - "READ"
+        - "WRITE"
+    PageAccess:
+      type: string
+      enum:
+        - "NO"
+        - "READ"
+        - "WRITE"
+        - "MANAGE"
+    ColumnType:
+      type: string
+      enum:
+        - TEXT
+        - NUMBER
+        - DATE
+        - SELECTOR
+        - FILE
+    Role:
+      type: string
+      enum:
+        - ADMIN
+        - USER
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+    UserCreateWithPermissions:
+      type: object
+      required:
+        - login
+        - password
+        - name
+        - role
+      properties:
+        login:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        pagePermissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PagePermissionUpsert'
+        columnPermissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnPermissionUpsert'
+    Page:
+      type: object
+      required:
+        - id
+        - name
+        - access
+        - isArchived
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        access:
+          $ref: '#/components/schemas/PageAccess'
+        isArchived:
+          type: boolean
+    ShareLinkResponse:
+      type: object
+      required:
+        - token
+        - url
+      properties:
+        token:
+          type: string
+          format: uuid
+        url:
+          type: string
+    Column:
+      type: object
+      required:
+        - id
+        - sideId
+        - key
+        - name
+        - type
+        - position
+        - access
+      properties:
+        id:
+          type: string
+          format: uuid
+        sideId:
+          type: string
+          format: uuid
+        key:
+          type: string
+        name:
+          type: string
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+        type:
+          $ref: '#/components/schemas/ColumnType'
+        position:
+          type: integer
+    ColumnCreateRequest:
+      type: object
+      required:
+        - name
+        - position
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+        options:
+          type: array
+          items:
+            type: object
+            required:
+              - label
+              - sortOrder
+            properties:
+              label:
+                type: string
+              sortOrder:
+                type: integer
+
+
+
+        type:
+          $ref: '#/components/schemas/ColumnType'
+    ColumnUpdateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    SelectorOption:
+      type: object
+      required:
+        - id
+        - columnId
+        - label
+        - value
+        - sortOrder
+      properties:
+        id:
+          type: string
+          format: uuid
+        columnId:
+          type: string
+          format: uuid
+        label:
+          type: string
+        value:
+          type: string
+        sortOrder:
+          type: integer
+    SelectOptionCreate:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+    StoredFile:
+      type: object
+      description: Файл, сохранённый бэкендом (метаданные)
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID файла в хранилище
+        filename:
+          type: string
+          description: Оригинальное имя файла
+      required:
+        - id
+        - filename
+    JsonValue:
+      type: object
+      x-kotlin-type: com.fasterxml.jackson.databind.JsonNode
+    AnyJsonMap:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+    Link:
+      type: object
+      properties:
+        pageId:
+          type: string
+          format: uuid
+        leftRowId:
+          type: string
+          format: uuid
+        rightRowId:
+          type: string
+          format: uuid
+    PageLegend:
+      type: object
+      required:
+        - left
+        - right
+      properties:
+        left:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+        right:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+    DeleteFileResponse:
+      type: object
+      description: DeletedFile
+      required:
+        - fileId
+      properties:
+        fileId:
+          type: string
+          format: uuid
+    RightRow:
+      type: object
+      description: Правая строка, принадлежащая левой
+      required:
+        - rightRowId
+        - dataRight
+      properties:
+        rightRowId:
+          type: string
+          format: uuid
+        dataRight:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: Объект значений правой части (key → value)
+    LeftRow:
+      type: object
+      description: Левая строка с набором связанных правых
+      required:
+        - leftRowId
+        - dataLeft
+        - rights
+      properties:
+        leftRowId:
+          type: string
+          format: uuid
+          nullable: false
+        dataLeft:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: Объект значений левой части (key → value)
+        rights:
+          type: array
+          description: Массив связанных правых строк
+          items:
+            $ref: '#/components/schemas/RightRow'
+    PageGrid:
+      type: object
+      required:
+        - legend
+        - rows
+      description: Полный грид страницы (легенда + все данные)
+      properties:
+        legend:
+          $ref: '#/components/schemas/PageLegend'
+        rows:
+          type: array
+          description: Список левых строк с вложенными правыми
+          items:
+            $ref: '#/components/schemas/LeftRow'
+    PagePermission:
+      type: object
+      properties:
+        pageId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+      required:
+        - pageId
+        - userId
+        - access
+    PagePermissionUpsert:
+      type: object
+      required:
+        - userId
+        - access
+      properties:
+        userId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+    ColumnPermission:
+      type: object
+      properties:
+        columnId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+      required:
+        - columnId
+        - userId
+        - access
+    ColumnPermissionUpsert:
+      type: object
+      required:
+        - userId
+        - access
+      properties:
+        userId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+    LoginRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      description: Унифицированный ответ аутентификации (подходит и для /api, и для
+        /auth).
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+          nullable: true
+          description: Может отсутствовать в некоторых ответах (/api/auth/sign-in)
+        user:
+          $ref: '#/components/schemas/UserDto'
+      required:
+        - accessToken
+    UserDto:
+      type: object
+      description: Данные пользователя (API/mobile)
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID пользователя
+        email:
+          type: string
+          description: Уникальный email пользователя
+        name:
+          type: string
+          description: Имя пользователя
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - id
+        - login
+        - name
+        - role
+
+
+    RegisterUserRequest:
+      type: object
+      description: Запрос на обновление пользователя c правами
+      required:
+        - email
+        - name
+        - access
+      properties:
+        email:
+          type: string
+          description: Уникальный логин пользователя
+        name:
+          type: string
+          description: Имя пользователя
+        access:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessDto'
+
+
+
+
+    AccessDto:
+      type: object
+      required:
+        - pageAccess
+        - columnAccess
+      properties:
+        pageAccess:
+          $ref: '#/components/schemas/PageAccessDto'
+        columnAccess:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnAccessDto'
+
+
+
+    PageAccessDto:
+      type: object
+      required:
+        - pageId
+        - access
+      properties:
+        pageId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/PageAccess'
+    ColumnAccessDto:
+      type: object
+      required:
+        - columnId
+        - access
+      properties:
+        columnId:
+          type: string
+          format: uuid
+        access:
+          $ref: '#/components/schemas/ColumnAccess'
+
+    MergeLeftRowsRequest:
+      type: object
+      required:
+        - leftRowIds
+        - values
+      properties:
+        leftRowIds:
+          type: array
+          minItems: 2
+          items:
+            type: string
+            format: uuid
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/CellSummary"
+
+
+    CellSummary:
+      type: object
+      required:
+        - columnKey
+        - dataType
+        - value
+      properties:
+        columnKey:
+          type: string
+        dataType:
+          $ref: "#/components/schemas/ColumnType"
+        value:
+          nullable: true
+          description: зависит от dataType (TEXT=string, NUMBER=number/string, DATE=YYYY-MM-DD, SELECTOR/FILE=uuid)
+
+    UserAccess:
+      type: object
+      required:
+        - user
+        - access
+      properties:
+        user:
+          $ref: '#/components/schemas/UserDto'
+        access:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessDto'
+
+    UpdateUserAccessRequest:
+      type: object
+      required:
+        - userId
+        - access
+      properties:
+        userId:
+          type: string
+          format: uuid
+        access:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessDto'
+
+    UserUpdateRequest:
+      type: object
+      description: Запрос на обновление пользователя
+      properties:
+        name:
+          type: string
+          description: Имя пользователя
+          minLength: 1
+      required:
+        - name
+    SignInRequest:
+      type: object
+      description: Вход в аккаунт
+      properties:
+        email:
+          type: string
+          description: Уникальный логин пользователя
+          minLength: 3
+        password:
+          type: string
+          description: Пароль пользователя
+      required:
+        - email
+        - password
+    RegisterRequest:
+      type: object
+      description: Запрос на регистрацию пользователя
+      properties:
+        email:
+          type: string
+          description: Уникальный логин пользователя
+          minLength: 3
+        password:
+          type: string
+          description: Пароль пользователя
+        name:
+          type: string
+          description: Имя пользователя
+          minLength: 1
+      required:
+        - email
+        - name
+        - password
+
+    UpdateCellRequest:
+      type: object
+      required: [ dataType, value ]
+      properties:
+        dataType:
+          $ref: "#/components/schemas/ColumnType"
+        value:
+          nullable: true
+          description: зависит от dataType (TEXT=string, NUMBER=number/string, DATE=YYYY-MM-DD, SELECTOR/FILE=uuid)
+
+
+    ChangePasswordRequest:
+      type: object
+      description: Запрос на смену пароля
+      properties:
+        oldPassword:
+          type: string
+          minLength: 1
+        newPassword:
+          type: string
+      required:
+        - newPassword
+        - oldPassword
+    StatusResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+          format: int32
+          writeOnly: true
+      required:
+        - message
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Машинный код (UNAUTHORIZED, FORBIDDEN, NOT_FOUND...)
+        message:
+          type: string
+          description: Описание ошибки
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              message:
+                type: string
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            details:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required:
+                  - path
+                  - message
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+  parameters:
+    PageId:
+      in: path
+      name: pageId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RowId:
+      in: path
+      name: rowId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SidePath:
+      in: path
+      name: side
+      required: true
+      description: Сторона страницы
+      schema:
+        $ref: '#/components/schemas/Side'
+
+
+    ColumnKeyPath:
+      in: path
+      name: columnKey
+      required: true
+      description: Ключ колонки (уникален в паре (pageId, side))
+      schema:
+        type: string
+    Side:
+      in: query
+      name: side
+      required: true
+      description: Какая сторона страницы (left/right)
+      schema:
+        type: string
+        enum:
+          - left
+          - right
+    ColumnKey:
+      in: path
+      name: columnKey
+      required: true
+      description: Ключ колонки (columns.key). Уникален в паре (pageId, side).
+      schema:
+        type: string
+    FileId:
+      in: path
+      name: fileId
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: ID файла в хранилище
+    ShareToken:
+      in: path
+      name: token
+      required: true
+      schema:
+        type: string
+        format: uuid

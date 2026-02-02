@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4-create-page-sides
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: page_sides
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: pages
+                    referencedColumnNames: id
+                    foreignKeyName: fk_page_sides_page
+              - column:
+                  name: side
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+        - addUniqueConstraint:
+            tableName: page_sides
+            columnNames: page_id, side
+            constraintName: uq_page_sides_page_side
+        - createIndex:
+            tableName: page_sides
+            indexName: idx_page_sides_page_id
+            columns:
+              - column:
+                  name: page_id

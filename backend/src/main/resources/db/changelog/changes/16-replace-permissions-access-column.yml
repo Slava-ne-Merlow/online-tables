@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 16-replace-permissions-access-column
+      author: codex
+      changes:
+        - dropColumn:
+            tableName: page_permissions
+            columnName: can_read
+        - dropColumn:
+            tableName: page_permissions
+            columnName: can_write
+        - dropColumn:
+            tableName: page_permissions
+            columnName: can_admin
+        - addColumn:
+            tableName: page_permissions
+            columns:
+              - column:
+                  name: access
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+        - dropColumn:
+            tableName: column_permissions
+            columnName: can_read
+        - dropColumn:
+            tableName: column_permissions
+            columnName: can_write
+        - addColumn:
+            tableName: column_permissions
+            columns:
+              - column:
+                  name: access
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false

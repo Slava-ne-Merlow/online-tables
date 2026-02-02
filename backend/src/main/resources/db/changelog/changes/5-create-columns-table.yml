@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5-create-columns
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: columns
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: side_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: page_sides
+                    referencedColumnNames: id
+                    foreignKeyName: fk_columns_side
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: key
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: position
+                  type: INTEGER
+        - addUniqueConstraint:
+            tableName: columns
+            columnNames: side_id, key
+            constraintName: uq_columns_side_key
+        - createIndex:
+            tableName: columns
+            indexName: idx_columns_side_id
+            columns:
+              - column:
+                  name: side_id
+        - createIndex:
+            tableName: columns
+            indexName: idx_columns_side_id_position
+            columns:
+              - column: { name: side_id }
+              - column: { name: position }

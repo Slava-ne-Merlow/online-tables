@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6-create-selector-options
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: selector_options
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: column_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: columns
+                    referencedColumnNames: id
+                    foreignKeyName: fk_select_options_column
+              - column:
+                  name: label
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sort_order
+                  type: INTEGER
+        - addUniqueConstraint:
+            tableName: selector_options
+            columnNames: column_id, value
+            constraintName: uq_select_options_column_value
+        - createIndex:
+            tableName: selector_options
+            indexName: idx_select_options_column_id
+            columns:
+              - column:
+                  name: column_id
+        - createIndex:
+            tableName: selector_options
+            indexName: idx_select_options_column_sort
+            columns:
+              - column: { name: column_id }
+              - column: { name: sort_order }

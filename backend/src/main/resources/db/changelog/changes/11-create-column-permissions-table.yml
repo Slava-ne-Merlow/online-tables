@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11-create-column-permissions
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: column_permissions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: column_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: columns
+                    referencedColumnNames: id
+                    foreignKeyName: fk_col_perm_column
+
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    referencedTableName: users
+                    referencedColumnNames: id
+                    foreignKeyName: fk_col_perm_user
+
+              - column:
+                  name: can_read
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+              - column:
+                  name: can_write
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+        - addUniqueConstraint:
+            tableName: column_permissions
+            columnNames: column_id, user_id
+            constraintName: uq_column_permissions_column_user
+
+        - createIndex:
+            tableName: column_permissions
+            indexName: idx_column_permissions_column_id
+            columns:
+              - column: { name: column_id }
+
+        - createIndex:
+            tableName: column_permissions
+            indexName: idx_column_permissions_user_id
+            columns:
+              - column: { name: user_id }

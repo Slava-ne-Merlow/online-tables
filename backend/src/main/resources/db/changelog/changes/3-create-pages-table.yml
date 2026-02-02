@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3-create-pages
+      author: Mstislav_the
+      changes:
+        - createTable:
+            tableName: pages
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false

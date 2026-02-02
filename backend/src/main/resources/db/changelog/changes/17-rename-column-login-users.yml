@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 17-rename-column-login-users
+      author: Mstislav_the
+      changes:
+        - renameColumn:
+            tableName: users
+            oldColumnName: login
+            newColumnName: email
+            columnDataType: VARCHAR(255)

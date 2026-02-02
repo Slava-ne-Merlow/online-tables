@@ -1,0 +1,116 @@
+name: Build release artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for artifact names (e.g., 1.2.3). If empty, uses tag name.'
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'
+      - '*.*.*'
+
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          input_version="${{ inputs.version }}"
+          if [[ -n "$input_version" ]]; then
+            version="$input_version"
+          else
+            ref_name="${GITHUB_REF_NAME}"
+            version="${ref_name#v}"
+          fi
+          if [[ -z "$version" ]]; then
+            echo "Version is empty. Provide workflow input or tag." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: prep
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Build backend
+        working-directory: backend
+        run: ./gradlew --no-daemon clean bootJar
+
+      - name: Package backend artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.prep.outputs.version }}"
+          mkdir -p artifacts/backend
+
+          backend_jar=$(ls backend/build/libs/*.jar | head -n 1)
+          if [[ -z "$backend_jar" ]]; then
+            echo "Backend jar not found." >&2
+            exit 1
+          fi
+
+          tar -cf "artifacts/backend/backend_${version}.tar" -C "$(dirname "$backend_jar")" "$(basename "$backend_jar")"
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-${{ needs.prep.outputs.version }}
+          path: artifacts/backend/*.tar
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    needs: prep
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package frontend artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.prep.outputs.version }}"
+          mkdir -p artifacts/frontend
+          tar -cf "artifacts/frontend/frontend_${version}.tar" -C frontend dist
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ needs.prep.outputs.version }}
+          path: artifacts/frontend/*.tar

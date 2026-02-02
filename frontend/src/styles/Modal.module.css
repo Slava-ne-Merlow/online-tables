@@ -1,0 +1,686 @@
+:root {
+
+    --anim-in: 180ms;
+    --anim-out: 150ms;
+    --ease-in: ease-in;
+    --ease-out: ease-out;
+}
+
+/* ===== БАЗА ===== */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .25);
+    display: grid;
+    place-items: center;
+    z-index: 20;
+    backdrop-filter: blur(6px);
+}
+
+.modal {
+    width: min(560px, 92vw);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+
+.title {
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.input {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+.btn {
+    cursor: pointer;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.btnGhost {
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+.list {
+    display: grid;
+    max-height: 50vh;
+    overflow: auto;
+}
+
+.item {
+    padding: 10px 36px 10px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--color-bg);
+    font-size: 15px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Текст ярче контролируем отдельно (полезно при hover/selected) */
+.itemLabel { color: var(--color-text); }
+
+/* Плавающие карточки без затемнения */
+.float {
+    position: fixed;
+    z-index: 30;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+
+.bottomLeft {
+    left: 12px;
+    bottom: calc(var(--footer-h) + 6px);
+    max-width: min(420px, 92vw);
+}
+
+.topRight {
+    right: 6px;
+    top: 6px;
+    max-width: min(360px, 92vw);
+}
+
+.accountHeader {
+    display: grid;
+    gap: 6px;
+    padding: 8px 8px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 8px;
+}
+
+.accountHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+}
+
+.accountBrand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.accountBrandDot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.accountBrandText {
+    font-size: 16px;
+    letter-spacing: 0.4px;
+}
+
+.accountClose {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accountClose:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-color: var(--color-accent-light-selected);
+}
+
+.accountCloseIcon {
+    width: 14px;
+    height: 14px;
+    display: block;
+    transform: rotate(45deg);
+    filter: var(--icon-filter-text);
+}
+
+.accountClose:hover .accountCloseIcon {
+    filter: var(--icon-filter-accent);
+}
+
+.accountAvatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    font-weight: 700;
+    font-size: 20px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+}
+
+.accountName {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.accountSub {
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    z-index: 2100;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .2);
+    max-width: 340px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(6px);
+    animation: toastIn 0.18s ease-out;
+}
+
+.toastSuccess {
+    background: linear-gradient(135deg, rgba(215, 225, 255, 0.85), rgba(242, 246, 255, 0.9));
+    color: var(--color-accent);
+    border: 1px solid rgba(59, 91, 219, 0.35);
+}
+
+.toastError {
+    background: linear-gradient(135deg, rgba(255, 245, 245, 0.9), rgba(255, 236, 236, 0.9));
+    color: var(--color-danger);
+    border: 1px solid rgba(176, 0, 32, 0.35);
+}
+
+/* SelectorCell */
+.selectorCellTd {
+    padding: 4px 10px;
+    background: var(--color-surface);
+    /*height: 100%;*/
+    color: var(--color-text);
+    border: none;
+    box-sizing: border-box;
+    text-wrap: nowrap;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+    max-width: 260px;
+    align-items: center;
+}
+
+.selectorCellValue {
+    color: var(--color-text);
+    border: none;
+    line-height: 1.2;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.selectorCellPlaceholder {
+    color: var(--color-muted);
+    overflow: hidden;
+    text-wrap: nowrap;
+    white-space: nowrap;
+    border: none;
+    line-height: 1.2;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.selectorCellTdNoWrap {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.selectorCellTdNoWrap .selectorCellValue,
+.selectorCellTdNoWrap .selectorCellPlaceholder {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.accountPanel {
+    position: absolute;
+    right: calc(100% + 12px);
+    width: min(520px, 70vw);
+    max-height: min(80vh, 720px);
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    padding: 12px;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+.accountPanelTitle {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.accountPanelSection {
+    margin: 10px 0 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.accountPanelHint {
+    color: var(--color-muted);
+    font-size: 13px;
+}
+
+.accountPanelBody {
+    display: grid;
+    gap: 10px;
+    max-height: calc(var(--panel-max-h, 520px) - 24px);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding-right: 6px;
+    box-sizing: border-box;
+}
+
+.accountForm {
+    display: grid;
+    gap: 10px;
+}
+
+.accountField {
+    display: grid;
+    gap: 6px;
+}
+
+.accountFieldLabel {
+    font-size: 12px;
+    color: var(--color-muted);
+}
+
+.accountPrimaryBtn {
+    border: none;
+    border-radius: 8px;
+    background: var(--color-accent);
+    color: #fff;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.accountPrimaryBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.shareList {
+    display: grid;
+    gap: 8px;
+}
+
+.shareRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: var(--color-surface);
+}
+
+.shareName {
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shareActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.shareLink {
+    font-size: 12px;
+    color: var(--color-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    background: var(--color-surface);
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shareIconBtn {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    cursor: pointer;
+}
+
+.copyIcon{
+    width: 12px;
+    height: 12px;
+    display: block;
+    filter: var(--icon-filter-accent);
+}
+
+.shareIconBtn img {
+    width: 18px;
+    height: 18px;
+    filter: var(--icon-filter-text);
+}
+
+.shareIconBtn:hover:not(:disabled) {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+}
+
+.shareBtn {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.shareBtn:hover:not(:disabled) {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.shareBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.accessPages {
+    display: grid;
+    gap: 10px;
+}
+
+.accessPage {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 8px;
+    background: var(--color-surface);
+}
+
+.accessPageHeader {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.accessToggle {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.accessToggle:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.accessPageTitle {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.accessColumns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.accessSideTitle {
+    font-size: 12px;
+    color: var(--color-muted);
+    margin-bottom: 6px;
+}
+
+.accessRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.accessLabel {
+    font-size: 13px;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.accessUsers {
+    display: grid;
+    gap: 8px;
+}
+
+.accessUserCard {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+}
+
+.accessUserHeader {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    color: var(--color-text);
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.accessUserHeader:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.accessUserRole {
+    font-size: 11px;
+    color: var(--color-muted);
+}
+
+.accessUserBody {
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (max-width: 900px) {
+    .accountPanel {
+        right: 6px;
+        left: 6px;
+        top: calc(100% + 8px);
+        width: auto;
+    }
+
+    .accessColumns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.headerLine {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes k-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes k-pop {
+    from { opacity: 0; transform: translateY(6px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes k-slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes k-slide-left {
+    from { opacity: 0; transform: translateX(8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes k-slide-down {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== АНИМАЦИОННЫЕ КЛАССЫ (IN/OUT) ===== */
+/* Backdrop */
+.anim-fade-in  { animation: k-fade var(--anim-in)  var(--ease-out) forwards; }
+.anim-fade-out { animation: k-fade var(--anim-out) var(--ease-in)  reverse forwards; }
+
+/* Центральное окно (логин) */
+.anim-pop-in  { animation: k-pop var(--anim-in)  var(--ease-out) forwards; }
+.anim-pop-out { animation: k-pop var(--anim-out) var(--ease-in)  reverse forwards; }
+
+/* Плавающие карточки: снизу вверх (для PagesDrawer) */
+.anim-slide-up-in  { animation: k-slide-up var(--anim-in)  var(--ease-out) forwards; }
+.anim-slide-left-in  { animation: k-slide-left var(--anim-in)  var(--ease-out) forwards; }
+.anim-slide-up-out { animation: k-slide-up var(--anim-out) var(--ease-in)  reverse forwards; }
+
+/* Плавающие карточки: сверху вниз (для AccountModal) */
+.anim-slide-down-in  { animation: k-slide-down var(--anim-in)  var(--ease-out) forwards; }
+.anim-slide-down-out { animation: k-slide-down var(--anim-out) var(--ease-in)  reverse forwards; }
+
+/* ---------- Выделение активной страницы в PagesDrawer ---------- */
+.itemSelected {
+    color: var(--color-accent);
+}
+.itemSelected .itemLabel {
+    color: var(--color-accent);
+}
+
+/* Hover для единообразия */
+.item:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+.item:hover .itemLabel {
+    color: var(--color-accent);
+}
+.item:hover .checkIdle {
+    background-color: var(--color-accent-light);
+}
+.item:hover .checkSelected {
+    background-color: var(--color-accent); /* для надёжности оставляем */
+}
+/* ---------- Галочка через CSS mask (белая по умолчанию, акцент у выбранной) ---------- */
+.check {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+
+    -webkit-mask: url('../assets/icons/check-mark.svg') no-repeat center ;
+    mask: url('../assets/icons/check-mark.svg') no-repeat center / contain;
+
+    background-color: var(--color-surface); /* невыбранные — белая галочка */
+}
+
+.checkSelected { background-color: var(--color-accent); }
+.checkIdle     { background-color: var(--color-surface); }

@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10.1-cascade-cells-option-file-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: cells
+            constraintName: fk_cells_option
+        - addForeignKeyConstraint:
+            baseTableName: cells
+            baseColumnNames: option_id
+            referencedTableName: selector_options
+            referencedColumnNames: id
+            constraintName: fk_cells_option
+            onDelete: CASCADE
+        - dropForeignKeyConstraint:
+            baseTableName: cells
+            constraintName: fk_cells_file
+        - addForeignKeyConstraint:
+            baseTableName: cells
+            baseColumnNames: file_id
+            referencedTableName: files
+            referencedColumnNames: id
+            constraintName: fk_cells_file
+            onDelete: CASCADE

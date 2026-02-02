@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 14.1-cascade-column-permissions-column-fk
+      author: codex
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: column_permissions
+            constraintName: fk_col_perm_column
+        - addForeignKeyConstraint:
+            baseTableName: column_permissions
+            baseColumnNames: column_id
+            referencedTableName: columns
+            referencedColumnNames: id
+            constraintName: fk_col_perm_column
+            onDelete: CASCADE

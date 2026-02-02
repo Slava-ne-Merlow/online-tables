@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 902-seed-columns-left
+      author: Mstislav_the
+      changes:
+        # title (TEXT)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "44444444-4444-4444-4444-444444444441" }
+              - column: { name: side_id,  value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name,     value: "Title" }
+              - column: { name: key,      value: "title" }
+              - column: { name: type,     value: "TEXT" }
+              - column: { name: position, valueNumeric: 1 }
+
+        # description (TEXT)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "44444444-4444-4444-4444-444444444442" }
+              - column: { name: side_id,  value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name,     value: "Description" }
+              - column: { name: key,      value: "description" }
+              - column: { name: type,     value: "TEXT" }
+              - column: { name: position, valueNumeric: 2 }
+
+        # priority (SELECT)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "44444444-4444-4444-4444-444444444443" }
+              - column: { name: side_id,  value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name,     value: "Priority" }
+              - column: { name: key,      value: "priority" }
+              - column: { name: type,     value: "SELECTOR" }
+              - column: { name: position, valueNumeric: 3 }
+
+        # due_date (DATE)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "44444444-4444-4444-4444-444444444444" }
+              - column: { name: side_id,  value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name,     value: "Due date" }
+              - column: { name: key,      value: "due_date" }
+              - column: { name: type,     value: "DATE" }
+              - column: { name: position, valueNumeric: 4 }
+
+        # spec_file (FILE)
+        - insert:
+            tableName: columns
+            columns:
+              - column: { name: id,       value: "44444444-4444-4444-4444-444444444445" }
+              - column: { name: side_id,  value: "22222222-2222-2222-2222-222222222222" }
+              - column: { name: name,     value: "Spec file" }
+              - column: { name: key,      value: "spec_file" }
+              - column: { name: type,     value: "FILE" }
+              - column: { name: position, valueNumeric: 5 }
