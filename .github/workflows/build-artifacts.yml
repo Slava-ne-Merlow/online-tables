@@ -1,55 +1,41 @@
-name: Build release artifacts
+name: Build Docker images (air-gapped)
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version for artifact names (e.g., 1.2.3). If empty, uses tag name.'
-        required: false
+        description: 'Version (e.g. 1.2.3)'
+        required: true
         type: string
   push:
     tags:
       - 'v*'
       - '*.*.*'
 
-
-
 jobs:
-  prep:
+  build-images:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Check out
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version
+      - name: Resolve version
         id: version
         shell: bash
         run: |
           set -euo pipefail
-          input_version="${{ inputs.version }}"
-          if [[ -n "$input_version" ]]; then
-            version="$input_version"
+          if [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
           else
-            ref_name="${GITHUB_REF_NAME}"
-            version="${ref_name#v}"
+            VERSION="${GITHUB_REF_NAME#v}"
           fi
-          if [[ -z "$version" ]]; then
-            echo "Version is empty. Provide workflow input or tag." >&2
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-  build-backend:
-    runs-on: ubuntu-latest
-    needs: prep
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
-
+      # ---------- Backend ----------
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -57,39 +43,18 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Build backend
+      - name: Build backend jar
         working-directory: backend
         run: ./gradlew --no-daemon clean bootJar
 
-      - name: Package backend artifact
-        shell: bash
+      - name: Build backend image
         run: |
-          set -euo pipefail
-          version="${{ needs.prep.outputs.version }}"
-          mkdir -p artifacts/backend
+          docker build \
+            -t payment-backend:${VERSION} \
+            -f backend/Dockerfile \
+            backend
 
-          backend_jar=$(ls backend/build/libs/*.jar | head -n 1)
-          if [[ -z "$backend_jar" ]]; then
-            echo "Backend jar not found." >&2
-            exit 1
-          fi
-
-          tar -cf "artifacts/backend/backend_${version}.tar" -C "$(dirname "$backend_jar")" "$(basename "$backend_jar")"
-
-      - name: Upload backend artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-${{ needs.prep.outputs.version }}
-          path: artifacts/backend/*.tar
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    needs: prep
-
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
-
+      # ---------- Frontend ----------
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -97,22 +62,30 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Build frontend
-        working-directory: frontend
+      - name: Build frontend image
         run: |
-          npm ci
-          npm run build
+          docker build \
+            -t payment-frontend:${VERSION} \
+            -f frontend/Dockerfile \
+            frontend
 
-      - name: Package frontend artifact
-        shell: bash
+      # ---------- Infra images ----------
+      - name: Pull infra images
         run: |
-          set -euo pipefail
-          version="${{ needs.prep.outputs.version }}"
-          mkdir -p artifacts/frontend
-          tar -cf "artifacts/frontend/frontend_${version}.tar" -C frontend dist
+          docker pull postgres:15.6
 
-      - name: Upload frontend artifact
+      # ---------- Save all images ----------
+      - name: Save docker images
+        run: |
+          mkdir -p artifacts
+          docker save \
+            payment-backend:${VERSION} \
+            payment-frontend:${VERSION} \
+            postgres:15.6 \
+            -o artifacts/images_${VERSION}.tar
+
+      - name: Upload images artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-${{ needs.prep.outputs.version }}
-          path: artifacts/frontend/*.tar
+          name: docker-images-${{ env.VERSION }}
+          path: artifacts/images_${{ env.VERSION }}.tar
