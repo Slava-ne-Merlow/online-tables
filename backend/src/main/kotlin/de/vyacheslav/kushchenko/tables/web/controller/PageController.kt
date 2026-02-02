@@ -1,18 +1,7 @@
 package de.vyacheslav.kushchenko.tables.web.controller
 
 import de.vyacheslav.kushchenko.tables.api.PagesApi
-import de.vyacheslav.kushchenko.tables.api.model.AddPageRequest
-import de.vyacheslav.kushchenko.tables.api.model.DeleteLeftRow200Response
-import de.vyacheslav.kushchenko.tables.api.model.DeleteRightRow200Response
-import de.vyacheslav.kushchenko.tables.api.model.LeftRow
-import de.vyacheslav.kushchenko.tables.api.model.MergeLeftRows200Response
-import de.vyacheslav.kushchenko.tables.api.model.MergeLeftRowsRequest
-import de.vyacheslav.kushchenko.tables.api.model.Page
-import de.vyacheslav.kushchenko.tables.api.model.PageGrid
-import de.vyacheslav.kushchenko.tables.api.model.PageLegend
-import de.vyacheslav.kushchenko.tables.api.model.RenamePageRequest
-import de.vyacheslav.kushchenko.tables.api.model.RightRow
-import de.vyacheslav.kushchenko.tables.api.model.ShareLinkResponse
+import de.vyacheslav.kushchenko.tables.api.model.*
 import de.vyacheslav.kushchenko.tables.data.page.enum.PageAccess
 import de.vyacheslav.kushchenko.tables.data.page.model.toDto
 import de.vyacheslav.kushchenko.tables.service.PageService
@@ -23,14 +12,13 @@ import de.vyacheslav.kushchenko.tables.util.ok
 import de.vyacheslav.kushchenko.tables.web.security.annotation.Authorized
 import de.vyacheslav.kushchenko.tables.web.security.annotation.CanManagePage
 import de.vyacheslav.kushchenko.tables.web.security.annotation.CanReadPage
-import de.vyacheslav.kushchenko.tables.web.security.annotation.CanWritePage
 import de.vyacheslav.kushchenko.tables.web.security.annotation.IsAdmin
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import java.util.UUID
+import java.util.*
 
 @Component
 class PageController (

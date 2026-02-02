@@ -1,22 +1,15 @@
 package de.vyacheslav.kushchenko.tables.web.controller
 
 import de.vyacheslav.kushchenko.tables.api.TablesApi
-import de.vyacheslav.kushchenko.tables.api.model.DeleteLeftRow200Response
-import de.vyacheslav.kushchenko.tables.api.model.DeleteRightRow200Response
-import de.vyacheslav.kushchenko.tables.api.model.LeftRow
-import de.vyacheslav.kushchenko.tables.api.model.MergeLeftRows200Response
-import de.vyacheslav.kushchenko.tables.api.model.MergeLeftRowsRequest
-import de.vyacheslav.kushchenko.tables.api.model.PageLegend
-import de.vyacheslav.kushchenko.tables.api.model.RightRow
+import de.vyacheslav.kushchenko.tables.api.model.*
 import de.vyacheslav.kushchenko.tables.service.TableService
 import de.vyacheslav.kushchenko.tables.util.getRequestUser
 import de.vyacheslav.kushchenko.tables.util.ok
-import de.vyacheslav.kushchenko.tables.web.security.annotation.Authorized
 import de.vyacheslav.kushchenko.tables.web.security.annotation.CanReadPage
 import de.vyacheslav.kushchenko.tables.web.security.annotation.CanWritePage
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import java.util.UUID
+import java.util.*
 
 @Component
 class TableController (
