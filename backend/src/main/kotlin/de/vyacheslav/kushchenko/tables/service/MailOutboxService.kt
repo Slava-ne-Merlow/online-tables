@@ -18,7 +18,8 @@ class MailOutboxService(
 
       Логин: $login
       Пароль: $rawPassword
-
+      
+      Ссылка для доступа: http://192.168.10.227:3000
     """.trimIndent()
 
         repo.save(
