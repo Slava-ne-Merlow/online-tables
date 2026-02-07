@@ -3,9 +3,6 @@
     height: 100%;
 }
 
-/* merge bar moved to header */
-
-
 .mergeSelectedRow td {
     background: var(--color-accent-light);
 }
@@ -35,6 +32,7 @@
 .mergeMiniGrid table {
     table-layout: auto;
     width: auto;
+    border-collapse: collapse;
 }
 
 .mergeMiniGrid table th,
@@ -44,6 +42,7 @@
     white-space: normal;
     word-break: normal;
     overflow-wrap: normal;
+    border: 1px solid var(--color-border);
 }
 
 .mergeMiniGrid table td {
@@ -60,7 +59,6 @@
 
 .mergeThConflict {
     background: var(--color-danger-bg-hover2) !important;
-    /*color: var(--color-danger) !important;*/
 }
 
 .mergeTd {
@@ -124,7 +122,8 @@
 
 .table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background: var(--color-bg);
     font: 400 14px 'Roboto', sans-serif;
 }
@@ -132,8 +131,8 @@
 
 .table thead th {
     position: sticky;
-    top: -1px;
-    z-index: 1; /* поверх содержимого */
+    top: 0;
+    z-index: 1;
     background: var(--color-accent-light);
     color: var(--color-text);
     font-weight: 600;
@@ -142,7 +141,7 @@
 
     text-align: center;
     padding: 8px 10px;
-    border: 1px solid var(--color-border);
+    border: 0.5px solid var(--color-border);
     max-width: 250px;
 }
 
@@ -161,7 +160,7 @@
 
 
 .table td {
-    border: 1px solid var(--color-border);
+    border: 0.5px solid var(--color-border);
     vertical-align: middle;
     text-align: center;
     max-width: 250px;
@@ -194,6 +193,11 @@
 
 .tdReadonly {
     background: var(--color-bg);
+}
+
+
+.splitRight {
+    border-right: 2px solid var(--color-accent) !important;
 }
 
 .placeholder {
@@ -371,7 +375,7 @@
     mask: url('../assets/icons/more.svg') no-repeat center / contain;
     background-color: var(--color-text);
 }
-/* ---------- context menu ---------- */
+
 .ctxMenu {
     position: fixed;
     z-index: 1200;
@@ -436,7 +440,6 @@
     font-size: 13px;
 }
 
-/* подсветка заголовка с активным фильтром */
 .thFiltered {
     background: var(--color-accent-light-selected) !important;
 }
@@ -444,7 +447,6 @@
 .thEditing {
     background: transparent !important;
 }
-/* уже были — оставляем */
 .filterPanel {
     position: fixed;
     z-index: 1300;
@@ -458,7 +460,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* чтобы подпопап позиционировался относительно панели */
     position: fixed;
 }
 
@@ -498,7 +499,6 @@
     color: var(--color-accent);
 }
 
-/* строка с кнопкой "Добавить фильтр >" */
 .filterAddRow {
     margin-top: 4px;
 }
@@ -522,7 +522,6 @@
     color: var(--color-accent);
 }
 
-/* подпопап фильтра справа от основного меню */
 .filterSubPanel {
     position: absolute;
     top: 0;
@@ -543,13 +542,11 @@
     gap: 4px;
 }
 
-/* справа от панели (по умолчанию) */
 .filterSubPanelRight {
     left: 100%;
     margin-left: 8px;
 }
 
-/* слева от панели (когда не хватает места справа) */
 .filterSubPanelLeft {
     right: 100%;
     margin-right: 8px;
@@ -750,7 +747,6 @@
 
 .selectorField {
     width: 100%;
-    /*min-height: 34px;*/
     border: 1px solid var(--color-border);
     background: var(--color-bg);
     display: flex;
@@ -791,7 +787,6 @@
     color: var(--color-muted);
 }
 
-/* остальной блок фильтров остаётся тем же, что и раньше: */
 .filterSearch {
     margin-top: 2px;
 }
@@ -921,7 +916,6 @@
     color: var(--color-accent);
 }
 
-/* подпопап фильтра */
 .filterSubPanel {
     position: absolute;
     top: 0;
@@ -948,7 +942,6 @@
     margin-bottom: 4px;
 }
 
-/* остальное, чтобы точно был скролл по значениям */
 .filterValuesBox {
     border-radius: 12px;
     border: 1px solid var(--color-border);

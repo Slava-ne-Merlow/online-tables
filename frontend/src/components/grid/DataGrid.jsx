@@ -685,7 +685,8 @@ export default function DataGrid({
         if (!side || !colKey) return;
 
         const cols = side === 'LEFT' ? leftCols : rightCols;
-        const col = cols.find(c => c.key === colKey);
+        const colIndex = cols.findIndex(c => c.key === colKey);
+        const col = colIndex >= 0 ? cols[colIndex] : null;
         if (!col) return;
 
         ev.preventDefault();
@@ -708,6 +709,8 @@ export default function DataGrid({
             },
             side,
             column: col,
+            columnIndex: colIndex,
+            sideCount: cols.length,
             options: stats.options,
             allTokens: stats.allTokens,
         });
@@ -1135,18 +1138,19 @@ export default function DataGrid({
             <table className={s.table}>
                 <thead>
                 <tr>
-                    {leftCols.map(c => {
+                    {leftCols.map((c, idx) => {
                         const key = getFilterKey('LEFT', c.key);
                         const hasFilter = !!(filters[key] && filters[key].values && filters[key].values.length);
                         const isEditing = headerEdit && headerEdit.columnId === c.id;
                         const displayName = colNameOverrides[c.id] ?? c.name;
+                        const isLastLeft = idx === leftCols.length - 1;
                         return (
                             <th
                                 key={`L-${c.key}`}
                                 data-side="LEFT"
                                 data-colkey={c.key}
                                 onContextMenu={openHeaderMenu}
-                                className={`${hasFilter ? s.thFiltered : ''}`.trim() || undefined}
+                                className={`${hasFilter ? s.thFiltered : ''} ${isLastLeft ? s.splitRight : ''}`.trim() || undefined}
                             >
                                 {isEditing ? (
                                     <span
@@ -1238,11 +1242,12 @@ export default function DataGrid({
                                 toggleMergeSelect(group.leftRowId);
                             }}
                         >
-                            {idx === 0 && leftCols.map(col => {
+                            {idx === 0 && leftCols.map((col, colIdx) => {
                                 const cell = group.dataLeft?.[col.key];
                                 const effType =
                                     (cell?.dataType && cell.dataType !== 'EMPTY') ? cell.dataType : col.type;
                                 const editable = !mergeMode && !isReadOnly && !isRead && String(col.access).toUpperCase() === 'WRITE';
+                                const isLastLeft = colIdx === leftCols.length - 1;
                                 return (
                                     <CellByType
                                         key={`L-${group.leftRowId}-${col.key}`}
@@ -1254,6 +1259,7 @@ export default function DataGrid({
                                             'data-rowid': group.leftRowId,
                                             'data-leftrow': group.leftRowId,
                                             'data-rights': span,
+                                            className: isLastLeft ? s.splitRight : undefined,
                                         }}
                                         cell={cell}
                                         col={col}

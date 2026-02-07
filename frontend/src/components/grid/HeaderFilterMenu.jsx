@@ -618,7 +618,7 @@ export default function HeaderFilterMenu({
                         type="button"
                         className={s.ctxItem}
                         onMouseEnter={() => {
-                            const pos = Number(menu.column.position || 1);
+                            const pos = Math.max(1, Number(menu.column?.position || 1));
                             handleStartAdd(pos);
                         }}
                         onMouseLeave={scheduleAddHide}
@@ -629,7 +629,7 @@ export default function HeaderFilterMenu({
                         type="button"
                         className={s.ctxItem}
                         onMouseEnter={() => {
-                            const pos = Number(menu.column.position || 1) + 1;
+                            const pos = Math.max(1, Number(menu.column?.position || 1) + 1);
                             handleStartAdd(pos);
                         }}
                         onMouseLeave={scheduleAddHide}

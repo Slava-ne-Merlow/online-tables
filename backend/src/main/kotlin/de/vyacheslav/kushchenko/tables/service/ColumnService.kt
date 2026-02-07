@@ -58,6 +58,14 @@ class ColumnService(
 
         val column = getColumn(columnId)
         columnRepository.deleteById(columnId)
+        val remaining = columnRepository.findAllBySideId(column.sideId)
+            .sortedBy { it.position }
+        remaining.forEachIndexed { index, entity ->
+            val newPosition = index + 1
+            if (entity.position != newPosition) {
+                columnRepository.save(entity.copy(position = newPosition))
+            }
+        }
         return column
     }
 
