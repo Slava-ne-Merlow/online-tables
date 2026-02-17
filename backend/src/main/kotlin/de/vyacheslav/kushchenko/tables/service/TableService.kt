@@ -1,21 +1,15 @@
 package de.vyacheslav.kushchenko.tables.service
 
-import de.vyacheslav.kushchenko.tables.api.model.CellSummary
-import de.vyacheslav.kushchenko.tables.api.model.ColumnCreateRequest
-import de.vyacheslav.kushchenko.tables.api.model.ColumnCreateRequestOptionsInner
-import de.vyacheslav.kushchenko.tables.api.model.LeftRow
-import de.vyacheslav.kushchenko.tables.api.model.Side as SideDto
-import de.vyacheslav.kushchenko.tables.api.model.RightRow
+import de.vyacheslav.kushchenko.tables.api.model.*
 import de.vyacheslav.kushchenko.tables.data.column.enum.ColumnAccess
 import de.vyacheslav.kushchenko.tables.data.column.enum.ColumnType
 import de.vyacheslav.kushchenko.tables.data.column.model.Column
-import de.vyacheslav.kushchenko.tables.data.column.model.toDto
 import de.vyacheslav.kushchenko.tables.data.page.enum.Side
 import de.vyacheslav.kushchenko.tables.data.user.model.User
 import jakarta.transaction.Transactional
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
+import de.vyacheslav.kushchenko.tables.api.model.Side as SideDto
 
 @Service
 class TableService (
@@ -149,6 +143,53 @@ class TableService (
             leftRowId = newLeftRowId,
             dataLeft = cellService.getRowBySideIdAndRowId(leftSide.id!!, newLeftRowId),
             rights = rightRows
+        )
+    }
+
+    @Transactional
+    fun addRowsBulk(pageId: UUID, request: BulkRowsRequest, userId: UUID): BulkRowsResponse {
+        val leftSide = pageSideService.getSideIdByPageIdAndSide(pageId, Side.LEFT)
+        val rightSide = pageSideService.getSideIdByPageIdAndSide(pageId, Side.RIGHT)
+
+        var leftInserted = 0
+        var rightInserted = 0
+
+        fun applyCells(
+            rowId: UUID,
+            side: SideDto,
+            data: Map<String, CellValue>
+        ) {
+            data.forEach { (columnKey, cellValue) ->
+                cellService.updateCell(
+                    pageId,
+                    rowId,
+                    side,
+                    columnKey,
+                    ColumnType.valueOf(cellValue.dataType.name),
+                    cellValue.value,
+                    userId
+                )
+            }
+        }
+
+        request.rows.forEach { row ->
+            val leftRowId = UUID.randomUUID()
+            cellService.addRow(pageId, leftRowId, leftSide, userId)
+            leftInserted += 1
+            applyCells(leftRowId, SideDto.LEFT, row.dataLeft)
+
+            row.rights?.forEach { rightRow ->
+                val rightRowId = UUID.randomUUID()
+                rightToLeftLinkService.linkRightToLeft(pageId, leftRowId, rightRowId)
+                cellService.addRow(pageId, rightRowId, rightSide, userId)
+                rightInserted += 1
+                applyCells(rightRowId, SideDto.RIGHT, rightRow.dataRight)
+            }
+        }
+
+        return BulkRowsResponse(
+            leftInserted = leftInserted,
+            rightInserted = rightInserted
         )
     }
 }

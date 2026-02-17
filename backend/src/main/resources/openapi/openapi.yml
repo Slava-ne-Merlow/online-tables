@@ -350,6 +350,28 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/duplicate:
+    post:
+      tags:
+        - Pages
+      summary: Дублировать страницу (Только структура, без доступов)
+      description: "Создаёт новую страницу с такими же колонками. Доступы по умолчанию: у всех NO, у админов полный доступ."
+      operationId: duplicatePage
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/pages/{pageId}/legend:
     get:
@@ -481,6 +503,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LeftRow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/pages/{pageId}/rows/bulk:
+    post:
+      tags:
+        - Tables
+      summary: Массовое добавление строк (левая + несколько правых)
+      operationId: addRowsBulk
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkRowsRequest'
+      responses:
+        '200':
+          description: Bulk result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkRowsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1297,6 +1348,56 @@ components:
       properties:
         name:
           type: string
+    BulkRowsRequest:
+      type: object
+      required:
+        - rows
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkRow'
+    BulkRowsResponse:
+      type: object
+      required:
+        - leftInserted
+        - rightInserted
+      properties:
+        leftInserted:
+          type: integer
+        rightInserted:
+          type: integer
+    BulkRow:
+      type: object
+      required:
+        - dataLeft
+      properties:
+        dataLeft:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CellValue'
+        rights:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkRightRow'
+    BulkRightRow:
+      type: object
+      required:
+        - dataRight
+      properties:
+        dataRight:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CellValue'
+    CellValue:
+      type: object
+      required:
+        - dataType
+      properties:
+        dataType:
+          $ref: '#/components/schemas/ColumnType'
+        value:
+          nullable: true
     SelectorOption:
       type: object
       required:

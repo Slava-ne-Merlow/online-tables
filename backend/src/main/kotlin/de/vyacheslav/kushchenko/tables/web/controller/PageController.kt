@@ -51,7 +51,7 @@ class PageController (
         return pageService.getGridPublic(pageId).ok()
     }
 
-    @CanManagePage
+     @Authorized
     override fun exportPage(pageId: UUID): ResponseEntity<Resource> {
         val export = pageService.exportPageExcel(pageId, getRequestUser())
 
@@ -64,11 +64,8 @@ class PageController (
 
     @IsAdmin
     override fun addPage(addPageRequest: AddPageRequest) : ResponseEntity<Page> {
-
         val page = pageService.addPage(addPageRequest.name).toDto(PageAccess.MANAGE).ok()
-
         permissionService.updateUsersPermissions()
-
         return page
     }
 
@@ -84,4 +81,10 @@ class PageController (
     override fun togglePageArchive(pageId: UUID) =
         pageService.togglePage(pageId).toDto(PageAccess.MANAGE).ok()
 
+    @IsAdmin
+    override fun duplicatePage(pageId: UUID): ResponseEntity<Page> {
+        val page = pageService.duplicatePage(pageId)
+        permissionService.updateUsersPermissions()
+        return page.toDto(PageAccess.MANAGE).ok()
+    }
 }

@@ -1,11 +1,6 @@
 package de.vyacheslav.kushchenko.tables.service
 
-import de.vyacheslav.kushchenko.tables.api.model.ColumnAccess
-import de.vyacheslav.kushchenko.tables.api.model.LeftRow
-import de.vyacheslav.kushchenko.tables.api.model.PageGrid
-import de.vyacheslav.kushchenko.tables.api.model.PageLegend
-import de.vyacheslav.kushchenko.tables.api.model.Page as PageDto
-import de.vyacheslav.kushchenko.tables.api.model.RightRow
+import de.vyacheslav.kushchenko.tables.api.model.*
 import de.vyacheslav.kushchenko.tables.data.page.dao.PageEntity.Companion.asEntity
 import de.vyacheslav.kushchenko.tables.data.page.dao.PageEntity.Companion.asModel
 import de.vyacheslav.kushchenko.tables.data.page.enum.Side
@@ -20,7 +15,8 @@ import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
-import java.util.UUID
+import java.util.*
+import de.vyacheslav.kushchenko.tables.api.model.Page as PageDto
 
 @Service
 class PageService(
@@ -29,7 +25,9 @@ class PageService(
     private val pageSideService: PageSideService,
     private val rightToLeftLinkService: RightToLeftLinkService,
     private val cellService: CellService,
-    private val columnPermissionService: ColumnPermissionService
+    private val columnPermissionService: ColumnPermissionService,
+    private val columnService: ColumnService,
+    private val selectorOptionService: SelectorOptionService
 ) {
     data class ExportedPageFile(
         val filename: String,
@@ -72,6 +70,42 @@ class PageService(
         pageSideService.addSidesByPageId(savedPage.id!!)
 
         return savedPage.asModel()
+    }
+
+    @Transactional
+    fun duplicatePage(pageId: UUID): Page {
+        val source = pageRepository.findPageEntityById(pageId)
+            ?: throw NotFoundException("Page $pageId not found")
+
+        val newName = if (source.name.isBlank()) "Копия" else "Копия ${source.name}"
+        val newPage = addPage(newName)
+
+        val leftColumns = columnService.getColumns(pageId, Side.LEFT).sortedBy { it.position }
+        val rightColumns = columnService.getColumns(pageId, Side.RIGHT).sortedBy { it.position }
+
+        fun copyColumn(column: de.vyacheslav.kushchenko.tables.data.column.model.Column, side: Side) {
+            val options = if (column.type.name == "SELECTOR") {
+                selectorOptionService.getSelectorOptions(column.id!!)
+                    .sortedBy { it.sortOrder }
+                    .map { ColumnCreateRequestOptionsInner(label = it.label, sortOrder = it.sortOrder) }
+            } else {
+                null
+            }
+
+            columnService.createColumn(
+                pageId = newPage.id!!,
+                side = side,
+                columnType = column.type,
+                name = column.name,
+                position = column.position,
+                options = options
+            )
+        }
+
+        leftColumns.forEach { copyColumn(it, Side.LEFT) }
+        rightColumns.forEach { copyColumn(it, Side.RIGHT) }
+
+        return newPage
     }
 
     fun getGrid(pageId: UUID, user: User): PageGrid {

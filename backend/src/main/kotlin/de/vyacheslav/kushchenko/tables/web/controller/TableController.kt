@@ -50,4 +50,8 @@ class TableController (
     @CanWritePage
     override fun mergeLeftRows(pageId: UUID, mergeLeftRowsRequest: MergeLeftRowsRequest) =
         tableService.mergeRows(pageId, mergeLeftRowsRequest.leftRowIds, mergeLeftRowsRequest.propertyValues, getRequestUser().id!!).ok()
+
+    @CanWritePage
+    override fun addRowsBulk(pageId: UUID, bulkRowsRequest: BulkRowsRequest): ResponseEntity<BulkRowsResponse> =
+        tableService.addRowsBulk(pageId, bulkRowsRequest, getRequestUser().id!!).ok()
 }
