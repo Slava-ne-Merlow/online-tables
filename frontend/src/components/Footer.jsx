@@ -17,9 +17,11 @@ export default function Footer({
     onRenamePage,
     onDeletePage,
     onToggleArchive,
+    onDuplicatePage,
     canManagePages = true,
     canAddPage = true,
     canDeletePage = false,
+    canDuplicatePage = false,
     canManagePage,
 }) {
     const footerRef = useRef(null);
@@ -363,6 +365,17 @@ export default function Footer({
                     >
                         {ctxMenu.page?.isArchived ? 'Разархивировать' : 'Архивировать'}
                     </button>
+                    {canDuplicatePage && (
+                        <button
+                            className={s.ctxItem}
+                            onClick={() => {
+                                onDuplicatePage?.(ctxMenu.page);
+                                setCtxMenu(null);
+                            }}
+                        >
+                            Дублировать
+                        </button>
+                    )}
                     {canDeletePage && (
                         <button className={s.ctxItemDanger} onClick={() => askDelete(ctxMenu.page)}>
                             Удалить

@@ -10,7 +10,7 @@ import PageView from './pages/PageView';
 import ToastHost from './components/ToastHost';
 import SharedPageView from './pages/SharedPageView';
 
-import { getPages, getPage, addPage, renamePage, deletePage, togglePageArchive } from './api/client';
+import { getPages, getPage, addPage, renamePage, deletePage, togglePageArchive, duplicatePage } from './api/client';
 import { token, currentUser, cachedPages, clearAllAuth } from './api/auth';
 
 const ACTIVE_PAGE_KEY = 'activePageId';
@@ -247,6 +247,21 @@ export default function App() {
         }
     }
 
+    async function handleDuplicatePage(page) {
+        if (!page?.id) return;
+        try {
+            const duplicated = await duplicatePage(page.id);
+            setPages(prev => {
+                const next = [...(prev || []), duplicated];
+                cachedPages.set(next);
+                return next;
+            });
+            setActive(duplicated);
+        } catch (e) {
+            console.error('Duplicate page failed', e);
+        }
+    }
+
     // Триггеры с анимацией исчезания:
     function onBurgerClick() {
         if (showPages && pagesRef.current?.startClose) {
@@ -320,9 +335,11 @@ export default function App() {
                 onRenamePage={handleRenamePage}
                 onDeletePage={handleDeletePage}
                 onToggleArchive={handleToggleArchive}
+                onDuplicatePage={handleDuplicatePage}
                 canManagePages={canManagePages}
                 canAddPage={isAdmin}
                 canDeletePage={isAdmin}
+                canDuplicatePage={isAdmin}
                 canManagePage={(page) => resolvePageAccess(page) === 'MANAGE'}
             />
 

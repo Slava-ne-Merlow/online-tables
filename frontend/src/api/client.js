@@ -81,6 +81,15 @@ export async function togglePageArchive(pageId) {
     return res.json();
 }
 
+export async function duplicatePage(pageId) {
+    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/duplicate`, {
+        method: 'POST',
+        headers: { ...authHeaders() },
+    });
+    if (!res.ok) throw await res.json().catch(() => new Error('DUPLICATE_PAGE_FAILED'));
+    return res.json();
+}
+
 /* ---------- GRID API ---------- */
 
 // Получить грид страницы
