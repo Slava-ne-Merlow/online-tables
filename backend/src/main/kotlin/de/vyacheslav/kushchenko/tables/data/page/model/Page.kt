@@ -9,8 +9,13 @@ data class Page(
     val id: UUID? = null,
     val name: String,
     val isArchived: Boolean,
+    val position: Int,
 )
 
 fun Page.toDto(access: PageAccess): PageDto = PageDto(
-    this.id!!, this.name, PageAccessDto.valueOf(access.name), this.isArchived
+    id = this.id!!,
+    name = this.name,
+    access = PageAccessDto.valueOf(access.name),
+    isArchived = this.isArchived,
+    position = this.position,
 )

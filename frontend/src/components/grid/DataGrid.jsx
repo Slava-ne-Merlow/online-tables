@@ -15,6 +15,7 @@ import {
     deleteRightRow,
     addColumn,
     updateColumn,
+    updateColumnWidth,
     deleteColumn,
     exportPage,
     mergeLeftRows,
@@ -27,6 +28,7 @@ import SelectorCell from '../SelectorCell.jsx';
 const EMPTY_TOKEN = '__EMPTY__';
 const FILTER_COOKIE_PREFIX = 'gridFilters_';
 const UNDO_LIMIT = 50;
+const DEFAULT_DATE_WIDTH_PX = 110;
 
 function getFilterKey(side, colKey) {
     return `${String(side).toUpperCase()}:${colKey}`;
@@ -208,6 +210,21 @@ function rawSortValue(cell, column) {
         return label != null ? String(label) : null;
     }
     return String(cell.value);
+}
+
+function getColumnWidthStyle(column) {
+    const customWidth = Number(column?.widthPx);
+    const normalizedCustomWidth = Number.isFinite(customWidth) ? customWidth : null;
+    const isDateColumn = String(column?.type || '').toUpperCase() === 'DATE';
+    const widthPx = normalizedCustomWidth ?? (isDateColumn ? DEFAULT_DATE_WIDTH_PX : null);
+
+    if (!widthPx) return undefined;
+
+    return {
+        width: `${widthPx}px`,
+        minWidth: `${widthPx}px`,
+        maxWidth: `${widthPx}px`,
+    };
 }
 
 /** сортировка групп rows */
@@ -815,6 +832,20 @@ export default function DataGrid({
         }
     }
 
+    async function handleUpdateColumnWidth(column, widthPx) {
+        if (!column?.id) return;
+        try {
+            await updateColumnWidth({
+                pageId,
+                columnId: column.id,
+                widthPx,
+            });
+            await onReload?.();
+        } catch (e) {
+            console.error('Update column width failed', e);
+        }
+    }
+
     function doDeleteColumn(side, column) {
         if (!column?.id) return;
         closeHeaderMenu();
@@ -1144,13 +1175,17 @@ export default function DataGrid({
                         const isEditing = headerEdit && headerEdit.columnId === c.id;
                         const displayName = colNameOverrides[c.id] ?? c.name;
                         const isLastLeft = idx === leftCols.length - 1;
+                        const isDateCol = String(c.type || '').toUpperCase() === 'DATE';
+                        const leftHeaderClass = `${hasFilter ? s.thFiltered : ''} ${isLastLeft ? s.splitRight : ''} ${isDateCol ? s.dateColumn : ''}`.trim() || undefined;
+                        const widthStyle = getColumnWidthStyle(c);
                         return (
                             <th
                                 key={`L-${c.key}`}
                                 data-side="LEFT"
                                 data-colkey={c.key}
                                 onContextMenu={openHeaderMenu}
-                                className={`${hasFilter ? s.thFiltered : ''} ${isLastLeft ? s.splitRight : ''}`.trim() || undefined}
+                                className={leftHeaderClass}
+                                style={widthStyle}
                             >
                                 {isEditing ? (
                                     <span
@@ -1186,13 +1221,17 @@ export default function DataGrid({
                         const hasFilter = !!(filters[key] && filters[key].values && filters[key].values.length);
                         const isEditing = headerEdit && headerEdit.columnId === c.id;
                         const displayName = colNameOverrides[c.id] ?? c.name;
+                        const isDateCol = String(c.type || '').toUpperCase() === 'DATE';
+                        const rightHeaderClass = `${hasFilter ? s.thFiltered : ''} ${isDateCol ? s.dateColumn : ''}`.trim() || undefined;
+                        const widthStyle = getColumnWidthStyle(c);
                         return (
                             <th
                                 key={`R-${c.key}`}
                                 data-side="RIGHT"
                                 data-colkey={c.key}
                                 onContextMenu={openHeaderMenu}
-                                className={`${hasFilter ? s.thFiltered : ''}`.trim() || undefined}
+                                className={rightHeaderClass}
+                                style={widthStyle}
                             >
                                 {isEditing ? (
                                     <span
@@ -1248,6 +1287,9 @@ export default function DataGrid({
                                     (cell?.dataType && cell.dataType !== 'EMPTY') ? cell.dataType : col.type;
                                 const editable = !mergeMode && !isReadOnly && !isRead && String(col.access).toUpperCase() === 'WRITE';
                                 const isLastLeft = colIdx === leftCols.length - 1;
+                                const isDateCol = String(col.type || '').toUpperCase() === 'DATE';
+                                const leftCellClass = `${isLastLeft ? s.splitRight : ''} ${isDateCol ? s.dateColumn : ''}`.trim() || undefined;
+                                const widthStyle = getColumnWidthStyle(col);
                                 return (
                                     <CellByType
                                         key={`L-${group.leftRowId}-${col.key}`}
@@ -1259,7 +1301,8 @@ export default function DataGrid({
                                             'data-rowid': group.leftRowId,
                                             'data-leftrow': group.leftRowId,
                                             'data-rights': span,
-                                            className: isLastLeft ? s.splitRight : undefined,
+                                            className: leftCellClass,
+                                            style: widthStyle,
                                         }}
                                         cell={cell}
                                         col={col}
@@ -1279,6 +1322,8 @@ export default function DataGrid({
                                     (cell?.dataType && cell.dataType !== 'EMPTY') ? cell.dataType : col.type;
                                 const editable = !mergeMode && !isReadOnly && !isRead && String(col.access).toUpperCase() === 'WRITE';
                                 const rowId = r.rightRowId;
+                                const isDateCol = String(col.type || '').toUpperCase() === 'DATE';
+                                const widthStyle = getColumnWidthStyle(col);
                                 return (
                                     <CellByType
                                         key={`R-${rowId}-${col.key}`}
@@ -1290,6 +1335,8 @@ export default function DataGrid({
                                             'data-rightrow': rowId,
                                             'data-leftrow': group.leftRowId,
                                             'data-rights': span,
+                                            className: isDateCol ? s.dateColumn : undefined,
+                                            style: widthStyle,
                                         }}
                                         cell={cell}
                                         col={col}
@@ -1336,6 +1383,7 @@ export default function DataGrid({
                 }}
                 onSortChange={(side, columnKey, dir) => handleSortChange(side, columnKey, dir)}
                 onRenameColumn={(side, column) => startRenameColumn(side, column)}
+                onUpdateColumnWidth={(side, column, widthPx) => handleUpdateColumnWidth(column, widthPx)}
                 onAddColumn={(payload) => handleAddColumn(payload)}
                 onDeleteColumn={(side, column) => doDeleteColumn(side, column)}
                 onClose={closeHeaderMenu}

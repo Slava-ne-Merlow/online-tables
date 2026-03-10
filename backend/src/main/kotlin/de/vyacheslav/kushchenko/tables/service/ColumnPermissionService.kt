@@ -101,17 +101,36 @@ class ColumnPermissionService(
     fun getLegend(pageId: UUID, user: User): PageLegend {
         val left = columnService.getColumns(pageId, Side.LEFT).sortedBy { it.position }
         val right = columnService.getColumns(pageId, Side.RIGHT).sortedBy { it.position }
+        val accessByColumnId = getAccessByUserAndColumnIds(user, (left + right).mapNotNull { it.id })
 
         return PageLegend(
             left = left.map { column ->
-                val access = getPermissionsByUserAndColumnId(user, column.id!!)
+                val access = accessByColumnId[column.id!!]
+                    ?: throw NotFoundException("Permission with userId ${user.id} and columnId ${column.id} not found")
                 column.toDto(access)
             }.filter { it.access != ColumnAccessDto.NO },
             right = right.map { column ->
-                val access = getPermissionsByUserAndColumnId(user, column.id!!)
+                val access = accessByColumnId[column.id!!]
+                    ?: throw NotFoundException("Permission with userId ${user.id} and columnId ${column.id} not found")
                 column.toDto(access)
             }.filter { it.access != ColumnAccessDto.NO }
         )
+    }
+
+    private fun getAccessByUserAndColumnIds(user: User, columnIds: List<UUID>): Map<UUID, ColumnAccess> {
+        if (columnIds.isEmpty()) return emptyMap()
+        if (user.role == UserRole.ADMIN) {
+            return columnIds.associateWith { ColumnAccess.WRITE }
+        }
+
+        val permissions = columnPermissionRepository.findAllByIdUserIdAndIdColumnIdIn(user.id!!, columnIds)
+        val accessByColumnId = permissions.associate { it.id.columnId to it.access }
+        val missingColumnId = columnIds.firstOrNull { !accessByColumnId.containsKey(it) }
+        if (missingColumnId != null) {
+            throw NotFoundException("Permission with userId ${user.id} and columnId $missingColumnId not found")
+        }
+
+        return accessByColumnId
     }
 
 

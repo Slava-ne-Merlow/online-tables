@@ -115,9 +115,9 @@
     background: transparent;
     display: flex;
     align-items: center;
+    position: relative;
     padding: 0 9px;
-
-
+    transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tabCard2 {
@@ -179,6 +179,36 @@
 
 .tabCardActive .tabMenuIcon {
     filter: var(--icon-filter-accent);
+}
+
+.tabCardDragging {
+    opacity: 0.55;
+    transform: scale(0.98);
+}
+
+.tabCardDragTarget {
+    background: var(--color-accent-light);
+}
+
+.tabCardInsertBefore::before,
+.tabCardInsertAfter::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 4px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 2px var(--color-bg);
+    pointer-events: none;
+}
+
+.tabCardInsertBefore::before {
+    left: -5px;
+}
+
+.tabCardInsertAfter::after {
+    right: -5px;
 }
 
 .tubCardFirst {

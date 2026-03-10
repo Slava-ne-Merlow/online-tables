@@ -70,6 +70,10 @@ class PageController (
     }
 
     @IsAdmin
+    override fun updatePagesOrder(updatePagesOrderRequest: UpdatePagesOrderRequest): ResponseEntity<List<Page>> =
+        pageService.updatePagesOrder(updatePagesOrderRequest.pageIds).ok()
+
+    @IsAdmin
     override fun deletePage(pageId: UUID) =
         pageService.deletePage(pageId).toDto(PageAccess.NO).ok()
 

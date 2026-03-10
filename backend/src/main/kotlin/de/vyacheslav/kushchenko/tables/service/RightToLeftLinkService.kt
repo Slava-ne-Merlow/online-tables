@@ -61,8 +61,11 @@ class RightToLeftLinkService(
         return links.map { it.asModel() }
     }
 
+    fun findLinksByPageIdOrdered(pageId: UUID): List<RightToLeftLink> =
+        rightToLeftLinkRepository.findAllByPageIdOrderByCreatedAtAsc(pageId).map { it.asModel() }
+
     fun findLeftRowsByPageId(pageId: UUID) =
-        rightToLeftLinkRepository.findAllByPageId(pageId).sortedBy { it.createdAt }.map { it.asModel().leftRowId }
+        rightToLeftLinkRepository.findAllByPageIdOrderByCreatedAtAsc(pageId).map { it.asModel().leftRowId }
             .distinct()
 
     fun findRightRowsByPageId(pageId: UUID) =

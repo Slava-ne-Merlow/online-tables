@@ -8,4 +8,5 @@ interface CellRepository : JpaRepository<CellEntity, CellEntity.CellId> {
     fun deleteByIdRowId(rowId: UUID)
     fun findCellEntityById(cellId: CellEntity.CellId): CellEntity?
     fun findAllCellEntityByIdSideIdAndIdRowId(sideId: UUID, rowId: UUID): List<CellEntity>
+    fun findAllByIdSideIdAndIdRowIdIn(sideId: UUID, rowIds: Collection<UUID>): List<CellEntity>
 }

@@ -8,6 +8,7 @@ interface RightToLeftLinkRepository : JpaRepository<RightToLeftLinkEntity, UUID>
     fun findRightToLeftLinkEntitiesByPageIdAndRightRowId(pageId: UUID, rightRowId: UUID): RightToLeftLinkEntity?
     fun findRightToLeftLinkEntitiesByPageIdAndLeftRowId(pageId: UUID, leftRowId: UUID): List<RightToLeftLinkEntity>
     fun findAllByPageId(pageId: UUID): List<RightToLeftLinkEntity>
+    fun findAllByPageIdOrderByCreatedAtAsc(pageId: UUID): List<RightToLeftLinkEntity>
     fun deleteByRightRowId(rightRowId: UUID)
     fun deleteAllByLeftRowId(leftRowId: UUID)
     fun findRightToLeftLinkEntitiesById(linkId: UUID): RightToLeftLinkEntity?

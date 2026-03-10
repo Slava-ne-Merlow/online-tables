@@ -14,6 +14,7 @@ data class Column(
     val key: String,
     val type: ColumnType,
     var position: Int,
+    val widthPx: Int? = null,
 )
 
 fun Column.toDto(access: ColumnAccess) = ColumnDto(
@@ -24,5 +25,6 @@ fun Column.toDto(access: ColumnAccess) = ColumnDto(
     position = this.position,
     type = ColumnTypeDto.valueOf(this.type.name),
     access = ColumnAccessDto.valueOf(access.name),
+    widthPx = this.widthPx,
 
 )

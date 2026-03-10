@@ -5,6 +5,7 @@ import de.vyacheslav.kushchenko.tables.api.model.Column
 import de.vyacheslav.kushchenko.tables.api.model.ColumnCreateRequest
 import de.vyacheslav.kushchenko.tables.api.model.ColumnType as columnTypeDto
 import de.vyacheslav.kushchenko.tables.api.model.ColumnUpdateRequest
+import de.vyacheslav.kushchenko.tables.api.model.UpdateColumnWidthRequest
 import de.vyacheslav.kushchenko.tables.api.model.UpdateColumnsOrderRequest
 import de.vyacheslav.kushchenko.tables.data.column.enum.ColumnAccess
 import de.vyacheslav.kushchenko.tables.api.model.Side as SideDto
@@ -46,6 +47,7 @@ class ColumnController(
             columnCreateRequest.name,
             columnCreateRequest.position,
             columnCreateRequest.options,
+            columnCreateRequest.widthPx,
             getRequestUser().id!!
         )
         permissionService.updateUsersPermissions()
@@ -70,6 +72,17 @@ class ColumnController(
         columnUpdateRequest: ColumnUpdateRequest
     ): ResponseEntity<Column> {
         val column = columnService.updateColumn(columnId, columnUpdateRequest.name)
+        val access = columnPermissionService.getPermissionsByUserAndColumnId(getRequestUser(), column.id!!)
+        return column.toDto(access).ok()
+    }
+
+    @CanManagePage
+    override fun updateColumnWidth(
+        pageId: UUID,
+        columnId: UUID,
+        updateColumnWidthRequest: UpdateColumnWidthRequest
+    ): ResponseEntity<Column> {
+        val column = columnService.updateColumnWidth(columnId, updateColumnWidthRequest.widthPx)
         val access = columnPermissionService.getPermissionsByUserAndColumnId(getRequestUser(), column.id!!)
         return column.toDto(access).ok()
     }

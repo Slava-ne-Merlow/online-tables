@@ -1,6 +1,7 @@
-import { token } from './auth';
+import { clearAllAuth, token } from './auth';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.10.227:8080' ;
+let unauthorizedNotified = false;
 
 function authHeaders() {
     const t = token.get();
@@ -8,85 +9,119 @@ function authHeaders() {
     return { Authorization: `Bearer ${t}` };
 }
 
+function notifyUnauthorized() {
+    if (unauthorizedNotified) return;
+    unauthorizedNotified = true;
+    clearAllAuth();
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
+    setTimeout(() => {
+        unauthorizedNotified = false;
+    }, 0);
+}
+
+async function parseFailedResponse(res, fallbackMessage) {
+    const payload = await res.json().catch(() => null);
+    const message = payload?.message || payload?.error || fallbackMessage;
+    const error = new Error(message);
+    error.status = res.status;
+    error.payload = payload;
+    return error;
+}
+
+async function apiFetch(url, options = {}, { auth = true, errorMessage = 'REQUEST_FAILED' } = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (auth) {
+        Object.assign(headers, authHeaders());
+    }
+
+    const res = await fetch(url, {
+        ...options,
+        headers,
+    });
+
+    if (res.status === 401 && auth) {
+        notifyUnauthorized();
+    }
+
+    if (!res.ok) {
+        throw await parseFailedResponse(res, errorMessage);
+    }
+
+    return res;
+}
+
 export async function signIn({ email, password }) {
-    const res = await fetch(`${BASE_URL}/api/auth/sign-in`, {
+    const res = await apiFetch(`${BASE_URL}/api/auth/sign-in`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('AUTH_FAILED'));
+    }, { auth: false, errorMessage: 'AUTH_FAILED' });
     return res.json();
 }
 
 export async function getPages() {
-    const res = await fetch(`${BASE_URL}/api/pages`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('PAGES_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages`, {}, { errorMessage: 'PAGES_FAILED' });
     return res.json();
 }
 
 export async function getPage(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('PAGE_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}`, {}, { errorMessage: 'PAGE_FAILED' });
     return res.json();
 }
 
 export async function getColumns({ pageId, side }) {
     const sideParam = String(side).toUpperCase();
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/columns?side=${sideParam}`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('COLUMNS_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/columns?side=${sideParam}`, {}, { errorMessage: 'COLUMNS_FAILED' });
     return res.json();
 }
 
 export async function addPage(name) {
-    const res = await fetch(`${BASE_URL}/api/pages`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('ADD_PAGE_FAILED'));
+    }, { errorMessage: 'ADD_PAGE_FAILED' });
     return res.json();
 }
 
 export async function renamePage({ pageId, name }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('RENAME_PAGE_FAILED'));
+    }, { errorMessage: 'RENAME_PAGE_FAILED' });
     return res.json();
 }
 
 export async function deletePage(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}`, {
         method: 'DELETE',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('DELETE_PAGE_FAILED'));
+    }, { errorMessage: 'DELETE_PAGE_FAILED' });
     return res.json();
 }
 
 export async function togglePageArchive(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/toggle-archive`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/toggle-archive`, {
         method: 'PATCH',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('TOGGLE_ARCHIVE_FAILED'));
+    }, { errorMessage: 'TOGGLE_ARCHIVE_FAILED' });
     return res.json();
 }
 
 export async function duplicatePage(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/duplicate`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/duplicate`, {
         method: 'POST',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('DUPLICATE_PAGE_FAILED'));
+    }, { errorMessage: 'DUPLICATE_PAGE_FAILED' });
+    return res.json();
+}
+
+export async function updatePagesOrder(pageIds) {
+    const res = await apiFetch(`${BASE_URL}/api/pages/order`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pageIds }),
+    }, { errorMessage: 'UPDATE_PAGES_ORDER_FAILED' });
     return res.json();
 }
 
@@ -94,123 +129,117 @@ export async function duplicatePage(pageId) {
 
 // Получить грид страницы
 export async function getGrid(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/grid`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('GRID_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/grid`, {}, { errorMessage: 'GRID_FAILED' });
     return res.json();
 }
 
 // Обновить ячейку (PATCH), тело: { dataType, value }
 export async function updateCell({ pageId, rowId, side, columnKey, dataType, value }) {
     const sidePath = String(side).toUpperCase(); // LEFT | RIGHT
-    const res = await fetch(
+    const res = await apiFetch(
         `${BASE_URL}/api/pages/${pageId}/rows/${rowId}/cells/${sidePath}/${encodeURIComponent(columnKey)}`,
         {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ dataType, value }),
-        }
+        },
+        { errorMessage: 'CELL_UPDATE_FAILED' }
     );
-    if (!res.ok) throw await res.json().catch(() => new Error('CELL_UPDATE_FAILED'));
     return res.json();
 }
 
 export async function getSelectorOptions(pageId, columnId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SELECTOR_OPTS_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options`, {}, { errorMessage: 'SELECTOR_OPTS_FAILED' });
     return res.json();
 }
 
 export async function addSelectorOption({ pageId, columnId, label, value }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label, value }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SELECTOR_ADD_FAILED'));
+    }, { errorMessage: 'SELECTOR_ADD_FAILED' });
     return res.json();
 }
 
 export async function updateSelectorOption({ pageId, optionId, label, value }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/selectors/options/${optionId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/selectors/options/${optionId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label, value }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SELECTOR_UPDATE_FAILED'));
+    }, { errorMessage: 'SELECTOR_UPDATE_FAILED' });
     return res.json();
 }
 
 export async function deleteSelectorOption({ pageId, optionId }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/selectors/options/${optionId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/selectors/options/${optionId}`, {
         method: 'DELETE',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SELECTOR_DELETE_FAILED'));
+    }, { errorMessage: 'SELECTOR_DELETE_FAILED' });
     return res.json();
 }
 
 export async function updateSelectorOptionsOrder({ pageId, columnId, optionIds }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options/order`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/selectors/${columnId}/options/order`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ optionIds }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SELECTOR_ORDER_FAILED'));
+    }, { errorMessage: 'SELECTOR_ORDER_FAILED' });
     return res.json();
 }
 
 export async function addColumn({ pageId, side, columnType, name, position, options }) {
     const sideParam = String(side).toUpperCase();
     const typeParam = String(columnType).toUpperCase();
-    const res = await fetch(
+    const res = await apiFetch(
         `${BASE_URL}/api/pages/${pageId}/columns?side=${sideParam}&columnType=${typeParam}`,
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name,
                 position,
                 type: typeParam,
                 ...(options ? { options } : {}),
             }),
-        }
+        },
+        { errorMessage: 'ADD_COLUMN_FAILED' }
     );
-    if (!res.ok) throw await res.json().catch(() => new Error('ADD_COLUMN_FAILED'));
     return res.json();
 }
 
 export async function updateColumn({ pageId, columnId, name }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/columns/${columnId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/columns/${columnId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('UPDATE_COLUMN_FAILED'));
+    }, { errorMessage: 'UPDATE_COLUMN_FAILED' });
+    return res.json();
+}
+
+export async function updateColumnWidth({ pageId, columnId, widthPx }) {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/columns/${columnId}/width`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ widthPx }),
+    }, { errorMessage: 'UPDATE_COLUMN_WIDTH_FAILED' });
     return res.json();
 }
 
 export async function deleteColumn(pageId, columnId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/columns/${columnId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/columns/${columnId}`, {
         method: 'DELETE',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('DELETE_COLUMN_FAILED'));
+    }, { errorMessage: 'DELETE_COLUMN_FAILED' });
     return res.json();
 }
 
 export async function uploadFile(file) {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`${BASE_URL}/files`, {
+    const res = await apiFetch(`${BASE_URL}/files`, {
         method: 'POST',
-        headers: { ...authHeaders() },
+        headers: {},
         body: form,
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('FILE_UPLOAD_FAILED'));
+    }, { errorMessage: 'FILE_UPLOAD_FAILED' });
     return res.json();
 }
 
@@ -231,46 +260,35 @@ export async function clearFileCell({ pageId, rowId, side, columnKey }) {
 
 // ---------- ROWS ----------
 export async function addRow(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/rows`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/rows`, {
         method: 'POST',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('ADD_ROW_FAILED'));
+    }, { errorMessage: 'ADD_ROW_FAILED' });
     return res.json(); // LeftRow
 }
 
 export async function addRightRow(pageId, leftRowId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/rows/${leftRowId}/right`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/rows/${leftRowId}/right`, {
         method: 'POST',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('ADD_RIGHT_FAILED'));
+    }, { errorMessage: 'ADD_RIGHT_FAILED' });
     return res.json(); // RightRow
 }
 
 export async function deleteRightRow(pageId, rightRowId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/right/${rightRowId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/right/${rightRowId}`, {
         method: 'DELETE',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('DEL_RIGHT_FAILED'));
+    }, { errorMessage: 'DEL_RIGHT_FAILED' });
     return res.json(); // { rightDeleted, leftDeleted }
 }
 
 export async function deleteLeftRow(pageId, leftRowId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/left/${leftRowId}`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/left/${leftRowId}`, {
         method: 'DELETE',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('DEL_LEFT_FAILED'));
+    }, { errorMessage: 'DEL_LEFT_FAILED' });
     return res.json(); // { leftDeleted, rightsDeletedCount }
 }
 
 export async function exportPage(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/export`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('EXPORT_PAGE_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/export`, {}, { errorMessage: 'EXPORT_PAGE_FAILED' });
     const blob = await res.blob();
     const disposition = res.headers.get('Content-Disposition') || '';
     const match = disposition.match(/filename="([^"]+)"/i);
@@ -279,21 +297,18 @@ export async function exportPage(pageId) {
 }
 
 export async function mergeLeftRows({ pageId, leftRowIds, values }) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/merge-left-rows`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/merge-left-rows`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leftRowIds, values }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('MERGE_LEFT_ROWS_FAILED'));
+    }, { errorMessage: 'MERGE_LEFT_ROWS_FAILED' });
     return res.json();
 }
 
 export async function createPageShare(pageId) {
-    const res = await fetch(`${BASE_URL}/api/pages/${pageId}/share`, {
+    const res = await apiFetch(`${BASE_URL}/api/pages/${pageId}/share`, {
         method: 'POST',
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('SHARE_CREATE_FAILED'));
+    }, { errorMessage: 'SHARE_CREATE_FAILED' });
     return res.json();
 }
 
@@ -304,37 +319,29 @@ export async function getSharedGrid(token) {
 }
 // ---------- ACCESS ----------
 export async function getAccessMe() {
-    const res = await fetch(`${BASE_URL}/api/access/me`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('ACCESS_ME_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/access/me`, {}, { errorMessage: 'ACCESS_ME_FAILED' });
     return res.json();
 }
 
 export async function getUserAccess() {
-    const res = await fetch(`${BASE_URL}/api/access/users`, {
-        headers: { ...authHeaders() },
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('ACCESS_USERS_FAILED'));
+    const res = await apiFetch(`${BASE_URL}/api/access/users`, {}, { errorMessage: 'ACCESS_USERS_FAILED' });
     return res.json();
 }
 
 export async function updateUserAccess({ userId, access }) {
-    const res = await fetch(`${BASE_URL}/api/access/users`, {
+    const res = await apiFetch(`${BASE_URL}/api/access/users`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, access }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('UPDATE_ACCESS_FAILED'));
+    }, { errorMessage: 'UPDATE_ACCESS_FAILED' });
     return res.json();
 }
 
 export async function registerUser({ name, email, access }) {
-    const res = await fetch(`${BASE_URL}/api/users/register`, {
+    const res = await apiFetch(`${BASE_URL}/api/users/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, access }),
-    });
-    if (!res.ok) throw await res.json().catch(() => new Error('REGISTER_USER_FAILED'));
+    }, { errorMessage: 'REGISTER_USER_FAILED' });
     return res.json();
 }

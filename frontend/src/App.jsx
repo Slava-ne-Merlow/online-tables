@@ -10,7 +10,7 @@ import PageView from './pages/PageView';
 import ToastHost from './components/ToastHost';
 import SharedPageView from './pages/SharedPageView';
 
-import { getPages, getPage, addPage, renamePage, deletePage, togglePageArchive, duplicatePage } from './api/client';
+import { getPages, getPage, addPage, renamePage, deletePage, togglePageArchive, duplicatePage, updatePagesOrder } from './api/client';
 import { token, currentUser, cachedPages, clearAllAuth } from './api/auth';
 
 const ACTIVE_PAGE_KEY = 'activePageId';
@@ -165,6 +165,23 @@ export default function App() {
         return () => { alive = false; };
     }, [pages, pageAccessMapRaw]);
 
+    useEffect(() => {
+        if (isSharedView) return;
+        const handleUnauthorized = () => {
+            setUser(null);
+            setPages([]);
+            setActive(null);
+            setActivePageAccess(null);
+            setPageAccessMapRaw({});
+            setShowAccount(false);
+            setShowPages(false);
+            setShowLogin(true);
+        };
+
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    }, [isSharedView]);
+
     // ---------- actions ----------
     function handleLogout() {
         clearAllAuth();
@@ -262,6 +279,63 @@ export default function App() {
         }
     }
 
+    async function handleReorderPages(sourcePageId, targetPageId, placement = 'before') {
+        if (!sourcePageId || !targetPageId || sourcePageId === targetPageId) return;
+
+        const currentPages = pages || [];
+        const visibleCurrentPages = showArchivedPages
+            ? currentPages
+            : currentPages.filter(p => !p?.isArchived);
+
+        const sourceIndex = visibleCurrentPages.findIndex(p => p.id === sourcePageId);
+        const targetIndex = visibleCurrentPages.findIndex(p => p.id === targetPageId);
+        if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) return;
+
+        const reorderedVisiblePages = [...visibleCurrentPages];
+        const [movedPage] = reorderedVisiblePages.splice(sourceIndex, 1);
+        const insertIndex =
+            placement === 'after'
+                ? (sourceIndex < targetIndex ? targetIndex : targetIndex + 1)
+                : (sourceIndex < targetIndex ? targetIndex - 1 : targetIndex);
+        reorderedVisiblePages.splice(insertIndex, 0, movedPage);
+
+        let visiblePointer = 0;
+        const nextPages = currentPages.map(page => {
+            if (showArchivedPages || !page?.isArchived) {
+                const nextPage = reorderedVisiblePages[visiblePointer];
+                visiblePointer += 1;
+                return nextPage;
+            }
+            return page;
+        });
+
+        const previousPages = currentPages;
+        setPages(nextPages);
+        cachedPages.set(nextPages);
+        setActive(prev => {
+            if (!prev) return prev;
+            return nextPages.find(p => p.id === prev.id) || prev;
+        });
+
+        try {
+            const savedPages = await updatePagesOrder(nextPages.map(page => page.id));
+            setPages(savedPages);
+            cachedPages.set(savedPages);
+            setActive(prev => {
+                if (!prev) return prev;
+                return savedPages.find(p => p.id === prev.id) || prev;
+            });
+        } catch (e) {
+            console.error('Reorder pages failed', e);
+            setPages(previousPages);
+            cachedPages.set(previousPages);
+            setActive(prev => {
+                if (!prev) return prev;
+                return previousPages.find(p => p.id === prev.id) || prev;
+            });
+        }
+    }
+
     // Триггеры с анимацией исчезания:
     function onBurgerClick() {
         if (showPages && pagesRef.current?.startClose) {
@@ -331,12 +405,14 @@ export default function App() {
                 activePageId={active?.id}
                 onBurger={onBurgerClick}
                 onSelect={(p) => setActive(p)}
+                onReorderPages={handleReorderPages}
                 onAddPage={handleAddPage}
                 onRenamePage={handleRenamePage}
                 onDeletePage={handleDeletePage}
                 onToggleArchive={handleToggleArchive}
                 onDuplicatePage={handleDuplicatePage}
                 canManagePages={canManagePages}
+                canReorderPages={isAdmin}
                 canAddPage={isAdmin}
                 canDeletePage={isAdmin}
                 canDuplicatePage={isAdmin}

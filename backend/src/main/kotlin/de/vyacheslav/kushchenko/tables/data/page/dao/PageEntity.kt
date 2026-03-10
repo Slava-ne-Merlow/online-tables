@@ -23,13 +23,22 @@ data class PageEntity(
     @Column(name = "is_archived", nullable = false)
     val isArchived: Boolean,
 
+    @Column(name = "position", nullable = false)
+    val position: Int,
+
     ) {
     companion object : EntityConverter<Page, PageEntity> {
         override fun PageEntity.asModel(): Page = Page(
-            id!!, name, isArchived
+            id = id!!,
+            name = name,
+            isArchived = isArchived,
+            position = position,
         )
         override fun Page.asEntity(): PageEntity = PageEntity(
-            id, name, isArchived
+            id = id,
+            name = name,
+            isArchived = isArchived,
+            position = position,
         )
     }
 }

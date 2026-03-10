@@ -16,13 +16,13 @@ export default function NumberTd({ cell, editable, onCommit, tdProps }) {
         const el = ref.current;
         if (!el) return;
 
-        let raw = el.textContent.replace(/[^\d,\s+\-]/g, '');
+        let raw = el.textContent.replace(/[^\d,\s+-]/g, '');
         raw = raw.replace(/\s+/g, '');
 
         // 2) Нормализуем знак: один ведущий +/-
-        raw = raw.replace(/(?!^)[+\-]/g, '');
+        raw = raw.replace(/(?!^)[+-]/g, '');
         const sign = raw.startsWith('-') ? '-' : (raw.startsWith('+') ? '+' : '');
-        raw = raw.replace(/^[+\-]/, '');
+        raw = raw.replace(/^[+-]/, '');
 
         const parts = raw.split(',');
         let int = parts[0] || '';
@@ -64,7 +64,7 @@ export default function NumberTd({ cell, editable, onCommit, tdProps }) {
         <td
             {...tdProps}
             className={`${s.td} ${editable ? s.tdEditable : s.tdReadonly}`}
-            style={{whiteSpace: 'nowrap'}}
+            style={{ whiteSpace: 'nowrap', wordBreak: 'normal', overflowWrap: 'normal' }}
             contentEditable={!!editable}
             suppressContentEditableWarning
             ref={ref}

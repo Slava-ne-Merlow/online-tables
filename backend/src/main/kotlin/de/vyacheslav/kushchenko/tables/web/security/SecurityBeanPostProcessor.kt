@@ -1,6 +1,11 @@
 package de.vyacheslav.kushchenko.tables.web.security
 
 import de.vyacheslav.kushchenko.tables.web.security.annotation.Authorized
+import de.vyacheslav.kushchenko.tables.web.security.annotation.CanManagePage
+import de.vyacheslav.kushchenko.tables.web.security.annotation.CanReadColumn
+import de.vyacheslav.kushchenko.tables.web.security.annotation.CanReadPage
+import de.vyacheslav.kushchenko.tables.web.security.annotation.CanWriteColumn
+import de.vyacheslav.kushchenko.tables.web.security.annotation.CanWritePage
 import de.vyacheslav.kushchenko.tables.web.security.annotation.IsAdmin
 import jakarta.annotation.PostConstruct
 import org.springframework.http.server.PathContainer
@@ -21,8 +26,10 @@ class SecurityBeanPostProcessor(
         val handlerMethods = requestMappingHandlerMapping.handlerMethods
         for ((info, handlerMethod) in handlerMethods) {
             val method = handlerMethod.method.kotlinFunction
-            val hasAnnotation =
-                method?.findAnnotation<Authorized>() != null || method?.findAnnotation<IsAdmin>() != null
+            val hasAnnotation = method?.findAnnotation<Authorized>() != null || method?.findAnnotation<IsAdmin>() != null ||
+                        method?.findAnnotation<CanWritePage>() != null || method?.findAnnotation<CanManagePage>() != null ||
+                        method?.findAnnotation<CanReadPage>() != null || method?.findAnnotation<CanReadColumn>() != null ||
+                        method?.findAnnotation<CanWriteColumn>() != null
             if (hasAnnotation) {
                 val pathPatternsCondition = info.pathPatternsCondition ?: return
                 for (pattern in pathPatternsCondition.patterns) {

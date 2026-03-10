@@ -20,6 +20,7 @@ export default function HeaderFilterMenu({
                                              onApply,
                                              onSortChange,
                                              onRenameColumn,
+                                             onUpdateColumnWidth,
                                              onAddColumn,
                                              onDeleteColumn,
                                              onReload,
@@ -41,6 +42,7 @@ export default function HeaderFilterMenu({
     const [selectorOptions, setSelectorOptions] = useState([]);
     const selectorOptionsRef = useRef([]);
     const [selectorLoading, setSelectorLoading] = useState(false);
+    const [selectorOrderSaving, setSelectorOrderSaving] = useState(false);
     const [selectorError, setSelectorError] = useState('');
     const [newSelectorLabel, setNewSelectorLabel] = useState('');
     const [selectorLoadedFor, setSelectorLoadedFor] = useState(null);
@@ -113,6 +115,7 @@ export default function HeaderFilterMenu({
         setAddError('');
         setSelectorOptions([]);
         setSelectorError('');
+        setSelectorOrderSaving(false);
         setNewSelectorLabel('');
         setSelectorLoadedFor(null);
     }, [menu, currentFilter]);
@@ -356,6 +359,34 @@ export default function HeaderFilterMenu({
         onClose();
     }
 
+    async function handleUpdateWidthClick() {
+        if (!menu?.column || !onUpdateColumnWidth) return;
+        const initialValue = menu.column.widthPx == null ? '' : String(menu.column.widthPx);
+        const raw = window.prompt('Ширина столбца в пикселях. Пустое значение сбросит ширину.', initialValue);
+        if (raw === null) return;
+
+        const trimmed = raw.trim();
+        if (trimmed === '') {
+            await onUpdateColumnWidth(menu.side, menu.column, null);
+            onClose();
+            return;
+        }
+
+        if (!/^\d+$/.test(trimmed)) {
+            window.alert('Ширина должна быть целым числом.');
+            return;
+        }
+
+        const widthPx = Number(trimmed);
+        if (widthPx < 40 || widthPx > 1200) {
+            window.alert('Ширина должна быть в диапазоне от 40 до 1200 пикселей.');
+            return;
+        }
+
+        await onUpdateColumnWidth(menu.side, menu.column, widthPx);
+        onClose();
+    }
+
     function cancelHideTimer() {
         if (hideTimerRef.current) {
             clearTimeout(hideTimerRef.current);
@@ -499,7 +530,7 @@ export default function HeaderFilterMenu({
     }
 
     async function moveSelectorOption(id, dir) {
-        if (!pageId || !menu?.column?.id) return;
+        if (!pageId || !menu?.column?.id || selectorOrderSaving) return;
         const current = selectorOptionsRef.current || [];
         const idx = current.findIndex(opt => opt.id === id);
         if (idx === -1) return;
@@ -509,16 +540,27 @@ export default function HeaderFilterMenu({
         const [item] = next.splice(idx, 1);
         next.splice(nextIdx, 0, item);
         const nextOrder = next.map(opt => opt.id);
+        const previous = current;
         setSelectorOptions(next);
+        setSelectorOrderSaving(true);
         try {
-            await updateSelectorOptionsOrder({
+            const saved = await updateSelectorOptionsOrder({
                 pageId,
                 columnId: menu.column.id,
                 optionIds: nextOrder,
             });
+            setSelectorOptions((saved || []).map(opt => ({
+                id: opt.id,
+                label: opt.label || '',
+                originalLabel: opt.label || '',
+                saving: false,
+            })));
         } catch (e) {
             console.error('Update selector order failed', e);
             setSelectorError('Не удалось сохранить порядок.');
+            setSelectorOptions(previous);
+        } finally {
+            setSelectorOrderSaving(false);
         }
     }
 
@@ -613,6 +655,13 @@ export default function HeaderFilterMenu({
                         }}
                     >
                         Переименовать
+                    </button>
+                    <button
+                        type="button"
+                        className={s.ctxItem}
+                        onClick={handleUpdateWidthClick}
+                    >
+                        Изменить ширину
                     </button>
                     <button
                         type="button"
@@ -813,7 +862,7 @@ export default function HeaderFilterMenu({
                                                 type="button"
                                                 className={s.selectorOptionBtn}
                                                 onClick={() => moveSelectorOption(opt.id, -1)}
-                                                disabled={opt.saving}
+                                                disabled={opt.saving || selectorOrderSaving}
                                                 aria-label="Переместить вверх"
                                             >
                                                 ↑
@@ -822,7 +871,7 @@ export default function HeaderFilterMenu({
                                                 type="button"
                                                 className={s.selectorOptionBtn}
                                                 onClick={() => moveSelectorOption(opt.id, 1)}
-                                                disabled={opt.saving}
+                                                disabled={opt.saving || selectorOrderSaving}
                                                 aria-label="Переместить вниз"
                                             >
                                                 ↓

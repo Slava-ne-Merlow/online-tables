@@ -28,6 +28,9 @@ data class ColumnEntity(
     @Column(unique = true)
     var position: Int,
 
+    @Column(name = "width_px")
+    val widthPx: Int? = null,
+
     ) {
     companion object : EntityConverter<ColumnDto, ColumnEntity> {
         override fun ColumnEntity.asModel(): ColumnDto = ColumnDto(
@@ -37,6 +40,7 @@ data class ColumnEntity(
             key,
             type,
             position,
+            widthPx,
         )
 
         override fun ColumnDto.asEntity(): ColumnEntity = ColumnEntity(
@@ -45,7 +49,8 @@ data class ColumnEntity(
             name,
             key,
             type,
-            position
+            position,
+            widthPx,
             )
     }
 }

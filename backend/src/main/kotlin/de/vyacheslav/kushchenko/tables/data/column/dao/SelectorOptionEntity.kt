@@ -25,7 +25,7 @@ data class SelectorOptionEntity(
 
     val value: String,
 
-    @Column(name = "sort_order", nullable = false, unique = true)
+    @Column(name = "sort_order", nullable = false)
     var sortOrder: Int,
 
     ) {

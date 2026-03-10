@@ -21,8 +21,8 @@ class TableService (
 )
 {
     @Transactional
-    fun addColumn(pageId: UUID, side: Side, columnType: ColumnType, name: String, position: Int, options: List<ColumnCreateRequestOptionsInner>?, userId: UUID): Column {
-        val newColumn = columnService.createColumn(pageId, side, columnType, name, position, options)
+    fun addColumn(pageId: UUID, side: Side, columnType: ColumnType, name: String, position: Int, options: List<ColumnCreateRequestOptionsInner>?, widthPx: Int?, userId: UUID): Column {
+        val newColumn = columnService.createColumn(pageId, side, columnType, name, position, options, widthPx)
         cellService.addCellsByColumn(newColumn.id!!, newColumn.sideId, userId)
 
         columnPermissionService.savePermission(

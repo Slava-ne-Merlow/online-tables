@@ -13,12 +13,14 @@ export default function Footer({
     activePageId,
     onBurger,
     onSelect,
+    onReorderPages,
     onAddPage,
     onRenamePage,
     onDeletePage,
     onToggleArchive,
     onDuplicatePage,
     canManagePages = true,
+    canReorderPages = false,
     canAddPage = true,
     canDeletePage = false,
     canDuplicatePage = false,
@@ -35,7 +37,17 @@ export default function Footer({
     const [ctxMenuPos, setCtxMenuPos] = useState({ top: 0, left: 0 });
     const [confirm, setConfirm] = useState(null);
     const [editingId, setEditingId] = useState(null);
+    const [draggingId, setDraggingId] = useState(null);
+    const [dragOverId, setDragOverId] = useState(null);
+    const [dragOverPlacement, setDragOverPlacement] = useState('before');
+    const [isSavingOrder, setIsSavingOrder] = useState(false);
     const editValueRef = useRef('');
+
+    function getDropPlacement(e) {
+        const rect = e.currentTarget?.getBoundingClientRect?.();
+        if (!rect) return 'before';
+        return e.clientX >= rect.left + rect.width / 2 ? 'after' : 'before';
+    }
 
     function updateScrollState() {
         const el = scrollerRef.current;
@@ -221,6 +233,61 @@ export default function Footer({
         });
     }
 
+    function handleDragStart(e, page) {
+        if (!canReorderPages || editingId || isSavingOrder) {
+            e.preventDefault();
+            return;
+        }
+        if (e.target?.closest?.(`.${css.tabMenuBtn}`)) {
+            e.preventDefault();
+            return;
+        }
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(page.id));
+        setDraggingId(page.id);
+        setDragOverId(null);
+        setDragOverPlacement('before');
+    }
+
+    function handleDragOver(e, page) {
+        if (!canReorderPages || !draggingId || isSavingOrder) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggingId === page.id) {
+            if (dragOverId !== null) {
+                setDragOverId(null);
+            }
+            return;
+        }
+        const nextPlacement = getDropPlacement(e);
+        if (dragOverId !== page.id || dragOverPlacement !== nextPlacement) {
+            setDragOverId(page.id);
+            setDragOverPlacement(nextPlacement);
+        }
+    }
+
+    async function handleDrop(e, page) {
+        if (!canReorderPages || !draggingId || draggingId === page.id || isSavingOrder) return;
+        e.preventDefault();
+        const sourceId = e.dataTransfer.getData('text/plain') || draggingId;
+        const placement = getDropPlacement(e);
+        setIsSavingOrder(true);
+        try {
+            await onReorderPages?.(sourceId, page.id, placement);
+        } finally {
+            setIsSavingOrder(false);
+            setDraggingId(null);
+            setDragOverId(null);
+            setDragOverPlacement('before');
+        }
+    }
+
+    function handleDragEnd() {
+        setDraggingId(null);
+        setDragOverId(null);
+        setDragOverPlacement('before');
+    }
+
     return (
         <footer ref={footerRef} className={css.footer}>
             <div className={css.tubCardFirst}>
@@ -235,21 +302,33 @@ export default function Footer({
                     className={`${css.tabsScroller} ${showArrows && canAddPage ? css.tabsScrollerPadded : ''} ${ showArrows && !canAddPage ? css.tabsScrollerPaddedLess : ''}`.trim()}
                 >
                     {(pages || []).map(p => (
-                        <div
-                            key={p.id}
-                            className={`${css.tabCard} ${activePageId === p.id ? css.tabCardActive : ''}`}
-                            onContextMenu={(e) => handleContextMenu(e, p)}
-                            onClick={() => {
-                                if (editingId) return;
-                                onSelect(p);
-                            }}
-                        >
+                        (() => {
+                            const isDropTarget = dragOverId === p.id && draggingId !== p.id;
+                            const dropPlacementClass = isDropTarget
+                                ? (dragOverPlacement === 'after' ? css.tabCardInsertAfter : css.tabCardInsertBefore)
+                                : '';
+                            return (
+                                <div
+                                    key={p.id}
+                                    className={`${css.tabCard} ${activePageId === p.id ? css.tabCardActive : ''} ${draggingId === p.id ? css.tabCardDragging : ''} ${isDropTarget ? css.tabCardDragTarget : ''} ${dropPlacementClass}`.trim()}
+                                    onContextMenu={(e) => handleContextMenu(e, p)}
+                                    draggable={canReorderPages && !editingId && !isSavingOrder}
+                                    onDragStart={(e) => handleDragStart(e, p)}
+                                    onDragOver={(e) => handleDragOver(e, p)}
+                                    onDrop={(e) => handleDrop(e, p)}
+                                    onDragEnd={handleDragEnd}
+                                    onClick={() => {
+                                        if (editingId) return;
+                                        onSelect(p);
+                                    }}
+                                >
                             <button
                                 className={`${css.tab} ${activePageId === p.id ? css.tabActive : ''} ${editingId === p.id ? css.tabEditing : ''}`}
                                 onClick={() => {
                                     if (editingId) return;
                                     onSelect(p);
                                 }}
+                                disabled={isSavingOrder}
                             >
                                 {editingId === p.id ? (
                                     <span
@@ -287,12 +366,15 @@ export default function Footer({
                                         e.preventDefault();
                                         e.stopPropagation();
                                     }}
+                                    draggable={false}
                                     aria-label="Меню страницы"
                                 >
                                     <img className={`${css.iconThin} ${css.tabMenuIcon}`} src={RArrow} alt="" />
                                 </button>
                             )}
-                        </div>
+                                </div>
+                            );
+                        })()
                     ))}
                     {!showArrows && canAddPage && (
                         <div className={css.tabCard2}>

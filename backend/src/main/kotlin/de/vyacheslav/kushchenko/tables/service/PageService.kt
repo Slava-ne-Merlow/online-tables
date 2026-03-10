@@ -3,6 +3,7 @@ package de.vyacheslav.kushchenko.tables.service
 import de.vyacheslav.kushchenko.tables.api.model.*
 import de.vyacheslav.kushchenko.tables.data.page.dao.PageEntity.Companion.asEntity
 import de.vyacheslav.kushchenko.tables.data.page.dao.PageEntity.Companion.asModel
+import de.vyacheslav.kushchenko.tables.data.page.enum.PageAccess
 import de.vyacheslav.kushchenko.tables.data.page.enum.Side
 import de.vyacheslav.kushchenko.tables.data.page.model.Page
 import de.vyacheslav.kushchenko.tables.data.page.model.toDto
@@ -11,6 +12,7 @@ import de.vyacheslav.kushchenko.tables.data.user.enum.UserRole
 import de.vyacheslav.kushchenko.tables.data.user.model.User
 import de.vyacheslav.kushchenko.tables.web.exception.base.NotFoundException
 import jakarta.transaction.Transactional
+import org.apache.coyote.BadRequestException
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
@@ -34,21 +36,25 @@ class PageService(
         val bytes: ByteArray
     )
 
-    fun getAll() = pageRepository.findAll().map { it.asModel() }
+    fun getAll() = pageRepository.findAllByOrderByPositionAscIdAsc().map { it.asModel() }
 
     fun getPages(user: User): List<PageDto> {
         val pages = when (user.role) {
             UserRole.ADMIN -> {
-                pageRepository.findAll().map { it.asModel() }
+                pageRepository.findAllByOrderByPositionAscIdAsc().map { it.asModel() }
             }
 
             UserRole.USER -> {
                 val pagePermissions = pagePermissionService.getPagesByUserId(user.id!!)
-                pagePermissions.map { it ->
-                    val page = pageRepository.findPageEntityById(it.pageId)
-                        ?: throw NotFoundException("Page ${it.pageId} not found")
-                    page.asModel()
+                val pageIds = pagePermissions.map { it.pageId }
+                val pageEntities = pageRepository.findAllByIdInOrderByPositionAscIdAsc(pageIds)
+                val pagesById = pageEntities
+                    .associateBy { it.id!! }
+                val missingPageId = pageIds.firstOrNull { !pagesById.containsKey(it) }
+                if (missingPageId != null) {
+                    throw NotFoundException("Page $missingPageId not found")
                 }
+                pageEntities.map { it.asModel() }
             }
         }
 
@@ -63,7 +69,11 @@ class PageService(
 
     @Transactional
     fun addPage(name: String): Page {
-        val newPage = Page(name = name, isArchived = false)
+        val newPage = Page(
+            name = name,
+            isArchived = false,
+            position = nextPosition()
+        )
 
         val savedPage = pageRepository.save(newPage.asEntity())
 
@@ -108,26 +118,28 @@ class PageService(
         return newPage
     }
 
+    @Transactional
     fun getGrid(pageId: UUID, user: User): PageGrid {
-
-        val rows = mutableListOf<LeftRow>()
-
         val leftSide = pageSideService.getSideIdByPageIdAndSide(pageId, Side.LEFT)
         val rightSide = pageSideService.getSideIdByPageIdAndSide(pageId, Side.RIGHT)
-        rightToLeftLinkService.findLeftRowsByPageId(pageId).forEach { leftRowId ->
-            val rightIds = rightToLeftLinkService.findLinksByLeftRowId(pageId, leftRowId).map { it.rightRowId }
-            rows.add(
-                LeftRow(
-                    leftRowId = leftRowId,
-                    dataLeft = cellService.getRowBySideIdAndRowId(leftSide.id!!, leftRowId),
-                    rights = rightIds.map { rightId ->
-                        RightRow(
-                            rightRowId = rightId,
-                            dataRight = cellService.getRowBySideIdAndRowId(rightSide.id!!, rightId)
-                        )
-                    }
-                ))
+        val links = rightToLeftLinkService.findLinksByPageIdOrdered(pageId)
+        val leftRowIds = links.map { it.leftRowId }.distinct()
+        val rightIdsByLeftRowId = links.groupBy({ it.leftRowId }, { it.rightRowId })
+        val leftRowsById = cellService.getRowsBySideIdAndRowIds(leftSide.id!!, leftRowIds)
+        val rightRowsById = cellService.getRowsBySideIdAndRowIds(rightSide.id!!, links.map { it.rightRowId })
+        val rows = leftRowIds.map { leftRowId ->
+            LeftRow(
+                leftRowId = leftRowId,
+                dataLeft = leftRowsById[leftRowId] ?: emptyMap(),
+                rights = rightIdsByLeftRowId[leftRowId].orEmpty().map { rightRowId ->
+                    RightRow(
+                        rightRowId = rightRowId,
+                        dataRight = rightRowsById[rightRowId] ?: emptyMap()
+                    )
+                }
+            )
         }
+
         return PageGrid(
             legend = columnPermissionService.getLegend(pageId, user),
             rows = rows,
@@ -256,6 +268,7 @@ class PageService(
         val page = pageRepository.findPageEntityById(pageId)
             ?: throw NotFoundException("Page $pageId not found")
         pageRepository.delete(page)
+        normalizePagePositions()
         return page.asModel()
     }
 
@@ -267,5 +280,45 @@ class PageService(
         val newPage = page.copy(isArchived = !page.isArchived)
 
         return pageRepository.save(newPage).asModel()
+    }
+
+    @Transactional
+    fun updatePagesOrder(pageIds: List<UUID>): List<PageDto> {
+        val pages = pageRepository.findAllByOrderByPositionAscIdAsc()
+        val existingIds = pages.mapNotNull { it.id }
+
+        if (pageIds.size != existingIds.size) {
+            throw BadRequestException("All pages must be provided exactly once")
+        }
+        if (pageIds.toSet().size != pageIds.size) {
+            throw BadRequestException("Duplicate page ids are not allowed")
+        }
+        if (pageIds.toSet() != existingIds.toSet()) {
+            throw BadRequestException("Page ids do not match existing pages")
+        }
+
+        val pagesById = pages.associateBy { it.id!! }
+        pageIds.forEachIndexed { index, pageId ->
+            val page = pagesById[pageId]
+                ?: throw NotFoundException("Page $pageId not found")
+            if (page.position != index + 1) {
+                pageRepository.save(page.copy(position = index + 1))
+            }
+        }
+
+        return pageRepository.findAllByOrderByPositionAscIdAsc()
+            .map { it.asModel().toDto(PageAccess.MANAGE) }
+    }
+
+    private fun nextPosition(): Int =
+        (pageRepository.findTopByOrderByPositionDescIdDesc()?.position ?: 0) + 1
+
+    private fun normalizePagePositions() {
+        pageRepository.findAllByOrderByPositionAscIdAsc().forEachIndexed { index, page ->
+            val nextPosition = index + 1
+            if (page.position != nextPosition) {
+                pageRepository.save(page.copy(position = nextPosition))
+            }
+        }
     }
 }

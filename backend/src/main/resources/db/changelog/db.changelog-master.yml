@@ -66,6 +66,10 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/24-add-is-archived-to-pages.yml
   - include:
+      file: db/changelog/changes/25-add-position-to-pages.yml
+  - include:
+      file: db/changelog/changes/26-add-width-px-to-columns.yml
+  - include:
       file: db/changelog/changes/900-seed-default-page.yml
   - include:
       file: db/changelog/changes/901-seed-sides.yml

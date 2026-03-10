@@ -6,9 +6,8 @@ import de.vyacheslav.kushchenko.tables.data.column.dao.SelectorOptionEntity.Comp
 import de.vyacheslav.kushchenko.tables.data.column.dao.SelectorOptionEntity.Companion.asModel
 import de.vyacheslav.kushchenko.tables.data.column.model.SelectorOption
 import de.vyacheslav.kushchenko.tables.data.column.repository.SelectorOptionRepository
-import de.vyacheslav.kushchenko.tables.web.controller.SelectorController
+import de.vyacheslav.kushchenko.tables.web.exception.base.InvalidBodyException
 import jakarta.transaction.Transactional
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -17,7 +16,7 @@ class SelectorOptionService(
     val selectorOptionRepository: SelectorOptionRepository,
 ) {
     fun getSelectorOptions(columnId: UUID): List<SelectorOption> {
-        val options = selectorOptionRepository.findAllByColumnId(columnId)
+        val options = selectorOptionRepository.findAllByColumnIdOrderBySortOrderAsc(columnId)
 
         return options.map { it.asModel() }
     }
@@ -54,7 +53,7 @@ class SelectorOptionService(
     }
 
     fun nextPosition(columnId: UUID): Int {
-        val lis = selectorOptionRepository.findAllByColumnId(columnId)
+        val lis = selectorOptionRepository.findAllByColumnIdOrderBySortOrderAsc(columnId)
         if (lis.isEmpty()) return 1
 
         return lis.maxBy { it.sortOrder }.sortOrder + 1
@@ -86,11 +85,20 @@ class SelectorOptionService(
 
     @Transactional
     fun updateOptionsOrder(columnId: UUID, list: List<UUID>): List<SelectorOption> {
+        val existingOptions = selectorOptionRepository.findAllByColumnIdOrderBySortOrderAsc(columnId)
+        val existingIds = existingOptions.mapNotNull { it.id }
+
+        if (list.size != existingIds.size || list.toSet().size != list.size || list.toSet() != existingIds.toSet()) {
+            throw InvalidBodyException("Selector option ids do not match existing options")
+        }
+
+        val optionsById = existingOptions.associateBy { it.id!! }
         list.forEachIndexed { ind, selectorOptionId ->
-            val selectorOption = selectorOptionRepository.findSelectorOptionEntityById(selectorOptionId)
+            val selectorOption = optionsById[selectorOptionId]
                 ?: throw NotFoundException("SelectorOption with id $selectorOptionId not found")
-            val newOption = selectorOption.copy(sortOrder = ind + 1)
-            selectorOptionRepository.save(newOption)
+            if (selectorOption.sortOrder != ind + 1) {
+                selectorOptionRepository.save(selectorOption.copy(sortOrder = ind + 1))
+            }
         }
 
         return getSelectorOptions(columnId)

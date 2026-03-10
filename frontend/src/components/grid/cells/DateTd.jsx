@@ -47,6 +47,7 @@ export default function DateTd({ cell, editable, onCommit, tdProps }) {
         <td
             {...tdProps}
             className={`${s.td} ${editable ? s.tdEditable : s.tdReadonly}`}
+            style={{ whiteSpace: 'nowrap', wordBreak: 'normal', overflowWrap: 'normal' }}
             contentEditable={!!editable}
             suppressContentEditableWarning
             ref={ref}
