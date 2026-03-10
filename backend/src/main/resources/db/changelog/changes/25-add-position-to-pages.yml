@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 25-add-position-to-pages
+      author: Codex
+      changes:
+        - addColumn:
+            tableName: pages
+            columns:
+              - column:
+                  name: position
+                  type: INTEGER
+        - sql:
+            dbms: postgresql
+            sql: |
+              WITH ordered_pages AS (
+                  SELECT id, ROW_NUMBER() OVER (ORDER BY ctid) AS rn
+                  FROM pages
+              )
+              UPDATE pages p
+              SET position = ordered_pages.rn
+              FROM ordered_pages
+              WHERE p.id = ordered_pages.id;
+        - addNotNullConstraint:
+            tableName: pages
+            columnName: position
+            columnDataType: INTEGER
+        - createIndex:
+            tableName: pages
+            indexName: idx_pages_position
+            columns:
+              - column:
+                  name: position

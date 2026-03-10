@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 26-add-width-px-to-columns
+      author: Codex
+      changes:
+        - addColumn:
+            tableName: columns
+            columns:
+              - column:
+                  name: width_px
+                  type: INTEGER
