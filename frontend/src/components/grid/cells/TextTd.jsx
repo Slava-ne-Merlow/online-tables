@@ -3,7 +3,7 @@ import s from '../../../styles/Grid.module.css';
 
 export default function TextTd({ cell, editable, onCommit, tdProps }) {
     const ref = useRef(null);
-    const initial = (cell?.value ?? '').slice(0, 100);
+    const initial = cell?.value ?? '';
 
     useEffect(() => {
         if (ref.current && ref.current.textContent !== initial) {
@@ -13,18 +13,9 @@ export default function TextTd({ cell, editable, onCommit, tdProps }) {
 
     function onBlur() {
         if (!editable) return;
-        const next = (ref.current?.textContent || '').slice(0, 100);
+        const next = ref.current?.textContent || '';
         if (next === initial) return;
         onCommit({ dataType: 'TEXT', value: next });
-    }
-
-    function onInput() {
-        const el = ref.current;
-        if (!el) return;
-        if (el.textContent.length > 100) {
-            el.textContent = el.textContent.slice(0, 100);
-            placeCaretAtEnd(el);
-        }
     }
 
     return (
@@ -34,17 +25,7 @@ export default function TextTd({ cell, editable, onCommit, tdProps }) {
             contentEditable={!!editable}
             suppressContentEditableWarning
             ref={ref}
-            onInput={onInput}
             onBlur={onBlur}
         />
     );
-}
-
-function placeCaretAtEnd(el) {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
 }
