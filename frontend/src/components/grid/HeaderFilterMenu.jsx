@@ -908,7 +908,7 @@ export default function HeaderFilterMenu({
                     onMouseLeave={scheduleHide}
                 >
                     {/* сортировка только если не FILE */}
-                    {!isFile && canManage && (
+                    {!isFile && (
                         <div className={s.filterSortBlock}>
                             <button
                                 type="button"
